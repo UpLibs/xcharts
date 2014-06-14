@@ -37,7 +37,7 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
     int marginLeft = this.marginLeft+labelsYAxisAreaWidth ;
     
     Point axisXinit = new Point(marginLeft, h-marginBottom) ;
-    Point axisXend = new Point(w-marginLeft, h-marginBottom) ;
+    Point axisXend = new Point(marginLeft+(w-(marginLeft+marginRight)), h-marginBottom) ;
     
     Point axisYinit = new Point(marginLeft, h-marginBottom) ;
     Point axisYend = new Point(marginLeft, marginTop ) ;
@@ -76,7 +76,7 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
   }
   
   int labelsYAxisAreaWidth = 20 ;
-  int labelsXAxisAreaHeight = 20 ;
+  int labelsXAxisAreaHeight = 15 ;
   String labelsColor = '#000000' ;
   
   int labelXAxisMarkSize = 7 ;
@@ -111,6 +111,9 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
     List<String> labelsNames = ret[0] ;
     List<num> labelsVals = ret[1] ;
     
+    //////////////////////////////////////////
+    // horizontal labels:
+    
     num valsInit = labelsVals.first ;
     num valsEnd = labelsVals.last ;
     
@@ -122,6 +125,8 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
     
     num labelXAxisMarkPointYInit = axisXinit.y-labelXAxisMarkSize ;
     num labelXAxisMarkPointYEnd = axisXinit.y ;
+    
+    int lastXAxisLabelEnd = -1000000000000 ;
     
     for (int i = 0; i < labelsNames.length ; i++) {
       String ln = labelsNames[i] ;
@@ -137,6 +142,8 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
       
       int labelXtext = labelX - (lnWidth ~/ 2) ;
       
+      if (labelXtext < lastXAxisLabelEnd) continue ;
+      
       if (i > 0) {
         context.beginPath() ;
         
@@ -147,9 +154,12 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
       }
       
       context.fillText(ln, labelXtext, labelTextY) ;
+      
+      lastXAxisLabelEnd = labelXtext + lnWidth.toInt() + 4 ;
     }
     
     //////////////////////////////////////////
+    // vertical labels:
     
     List retYAxisScale = _getYAxisScale(chart) ;
     
@@ -166,6 +176,8 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
     num labelYAxisMarkPointXInit = axisYinit.x ;
     num labelYAxisMarkPointXEnd = axisXinit.x+labelYAxisMarkSize ;
     
+    int lastLabelYAxisEnd = 1000000000000 ;
+    
     for (int i = 0 ; i < yAxisVals.length ; i++) {
       var v = yAxisVals[i] ;
       String vs = v.toString() ;
@@ -180,6 +192,8 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
       num textX = x - 3 ;
       num textY = y + (labelsFontSize ~/ 2) -1 ;
       
+      if ( textY > lastLabelYAxisEnd ) continue ;
+      
       context.fillText(vs, textX, textY) ;
       
       if (i < yAxisVals.length-1) {
@@ -190,6 +204,8 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
         
         context.stroke() ;
       }
+      
+      lastLabelYAxisEnd = (textY-20).toInt() ;
     }
     
   }
@@ -221,15 +237,26 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
       vals.add(v) ;
     }
     
+    vals.sort((a,b) => a < b ? -1 : (a == b ? 0 : 1) ) ;
+    
     return [ minVal , maxVal , vals ] ;
   }
  
 }
 
+class XChartsTypeDot extends XChartsTypeLine {
+  
+  XChartsTypeDot() : super() {
+    this.valuesFill = false ;
+    this.valuesShowLines = false ;
+  }
+  
+}
+
 class XChartsTypeLine extends XChartsTypeWithXYAxis {
   
   XChartsTypeLine() {
-    setMargin(10) ;
+    setMargin(15) ;
   }
   
   @override

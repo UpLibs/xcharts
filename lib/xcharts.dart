@@ -126,6 +126,8 @@ class XCharts {
     this._context = _canvas.getContext('2d') ;
   }
   
+  XChartsType get type => _type ;
+  
   /////////////////////////////////////////////////////////////////////////////////////
   
   List<XChartsDataSeries> _series = [] ;
@@ -229,11 +231,18 @@ class XCharts {
     num x = e.offset.x ;
     num y = e.offset.y ;
 
-    for (var e in _chartElements) {
+    _hintElements.clear() ;
+    
+    for (XChartsElement e in _chartElements) {
       if ( e.containsPoint(x, y) ) {
+        _hintElements.add(e) ;
+        
         _OnMouseOverChartElement(e) ;
       }
     }
+    
+    _showHints() ;
+    
   }
   void _processMouseClick(MouseEvent e) {
     if (_chartElements == null) return ;
@@ -293,6 +302,59 @@ class XCharts {
     
   }
   
+  ////////////////////////////////////////////////////////////////////////////////
+  
+  List<XChartsElement> _hintElements = [] ;
+  
+  Map<XChartsElement, Element> _currentHintElements = {} ;
+  
+  void _showHints() {
+    
+    Iterable<XChartsElement> elemsIter = _hintElements.where((e) => e.containsHint()) ;
+    
+    Map<XChartsElement, Element> hintsMap = {} ;
+    
+    for (var e in elemsIter) {
+      var prevHint = _currentHintElements[e] ;
+      if (prevHint == null) {
+        _currentHintElements[e] = prevHint = _createHint(e) ;
+      }
+      hintsMap[e] = prevHint ;
+    }
+    
+    List<XChartsElement> del = [] ;
+    
+    for (var e in _currentHintElements.keys) {
+      if ( !hintsMap.containsKey(e) ) {
+        del.add(e) ;
+      }
+    }
+    
+    for (var e in del) {
+      var prevHint = _currentHintElements.remove(e) ;
+      prevHint.remove() ;
+    }
+    
+  }
+  
+  Element _createHint(XChartsElement chartElem) {
+
+    int parentLeft = (chartElem.x.toInt() + chartElem.width.toInt() + 3).toInt() ;
+    int parentTop = chartElem.y.toInt() - 5 ;
+    
+    Element elem = new DivElement() ;
+    elem.style.position = 'absolute' ;
+    elem.style.left = "${parentLeft}px";
+    elem.style.top = "${parentTop}px";
+    elem.style.backgroundColor = 'rgba(255,255,255 , 0.8)' ;
+    elem.style.border = '1px solid rgba(0,0,0, 0.8)' ;
+    elem.text = chartElem.hint ;
+    
+    this._parent.children.add(elem) ;
+    
+    return elem ;
+  }
+  
 }
 
 class XChartsElement {
@@ -304,15 +366,42 @@ class XChartsElement {
   
   int seriesIndex ;
   int valueIndex ;
+
+  XChartsDataSeries series ;
+  XChartsData data ;
   
   XChartsElement( this.x , this.y , this.width , this.height , this.seriesIndex , this.valueIndex , this.series , this.data ) ;
   
-  XChartsDataSeries series ;
-  XChartsData data ;
+  operator == (XChartsElement o) {
+    return this.x == o.x
+        && this.y == o.y
+        && this.width == o.width
+        && this.seriesIndex == o.seriesIndex
+        && this.valueIndex == o.valueIndex ;
+  }
+  
+  int get hashCode {
+    int result = 1;
+    result = 31 * result + x.toInt() ;
+    result = 31 * result + y.toInt() ;
+    result = 31 * result + width.toInt() ;
+    result = 31 * result + height.toInt() ;
+    result = 31 * result + seriesIndex ;
+    result = 31 * result + valueIndex ;
+    return result;
+ }
   
   bool containsPoint(int x , int y) {
     return x > this.x && x <= this.x+this.width && y > this.y && y <= this.y+this.height ;
   }
+  
+  String get hint => data.hint ;
+  
+  bool containsHint() {
+    return data.hint != null ;
+  }
+  
+  
   
 }
 
