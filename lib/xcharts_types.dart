@@ -86,7 +86,7 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
   int labelsFontSize = 10 ;
   String labelsFontStyle = 'normal' ;
   
-  bool startScalToZero = false ;
+  bool startScaleToZero = false ;
   
   void _drawChartAxisLabels(XCharts chart, CanvasRenderingContext2D context) {
     
@@ -260,7 +260,7 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
     num yValsMin = yVals.first ;
     num yValsMax = yVals.last ;
     
-    if (startScalToZero) yValsMin = 0 ;
+    if (startScaleToZero) yValsMin = 0 ;
     
     num yValsRange = yValsMax - yValsMin ;
     
