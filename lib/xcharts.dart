@@ -13,24 +13,44 @@ class XChartsDataSeries {
   
   XChartsDataSeries( this.name , this.data , [ this.color ]) ;
   
-  List<String> getLabels() {
+  List<String> getXLabels() {
     List<String> labels = [] ;
     
     for (var d in data) {
-      labels.add( d.label ) ;
+      labels.add( d.labelX ) ;
+    }
+    
+    return labels ;
+  }
+  
+  List<String> getYLabels() {
+    List<String> labels = [] ;
+    
+    for (var d in data) {
+      labels.add( d.labelY ) ;
     }
     
     return labels ;
   }
 
-  List<num> getLabelsValues() {
-    List<num> labelsVals = [] ;
+  List<num> getXValues() {
+    List<num> vals = [] ;
     
     for (var d in data) {
-      labelsVals.add( d.labelValue ) ;
+      vals.add( d.valueX ) ;
     }
     
-    return labelsVals ;
+    return vals ;
+  }
+
+  List<num> getYValues() {
+    List<num> vals = [] ;
+    
+    for (var d in data) {
+      vals.add( d.valueY ) ;
+    }
+    
+    return vals ;
   }
 
   
@@ -38,14 +58,16 @@ class XChartsDataSeries {
 
 class XChartsData {
   
-  num value ;
-  num labelValue ;
-  String _label ;
+  num valueY ;
+  num valueX ;
+  String _labelX ;
+  String _labelY ;
   String hint ;
   
-  String get label => _label != null ? _label : labelValue.toString() ;
+  String get labelX => _labelX != null ? _labelX : valueX.toString() ;
+  String get labelY => _labelY != null ? _labelY : valueY.toString() ;
   
-  XChartsData( this.value , this.labelValue , [this._label , this.hint]) ;
+  XChartsData( this.valueX , this.valueY , [this._labelX , this._labelY , this.hint]) ;
   
 }
 
@@ -138,56 +160,91 @@ class XCharts {
   
   /////////////////////////////////////////////////////////////////////////////////////
   
-  List<String> getLabelsNames() => getLabelsNamesAndLabelsValues()[0] ;
+  List<String> getXLabels() => getLists_XLabelsAndXValues()[0] ;
+  List<String> getYLabels() => getLists_YLabelsAndYValues()[0] ;
   
-  List<List> getLabelsNamesAndLabelsValues() {
-    Map<num,String> labelsMap = getLabelsMap() ;
+  List<List> getLists_XLabelsAndXValues() {
+    Map<num,String> valuesAndLabels = getXValuesAndLabels() ;
     
-    List<num> vals = _getLabelsValues(labelsMap) ;
+    List<num> vals = _getValues(valuesAndLabels) ;
     
     List<String> labels = [] ;
     
     for (int i = 0 ; i < vals.length ; i++) {
       num v = vals[i] ;
-      String s = labelsMap[v] ;
+      String s = valuesAndLabels[v] ;
       labels.add(s) ;
     }
     
     return [ labels , vals ] ;
   }
   
-  List<num> getLabelsValues() => _getLabelsValues( getLabelsMap() ) ;
+  List<List> getLists_YLabelsAndYValues() {
+      Map<num,String> valuesAndLabels = getYValuesAndLabels() ;
+      
+      List<num> vals = _getValues(valuesAndLabels) ;
+      
+      List<String> labels = [] ;
+      
+      for (int i = 0 ; i < vals.length ; i++) {
+        num v = vals[i] ;
+        String s = valuesAndLabels[v] ;
+        labels.add(s) ;
+      }
+      
+      return [ labels , vals ] ;
+    }
   
-  List<num> _getLabelsValues(Map<num,String> labelsMap) {
-    List<num> labelsVals = [] ;
+  List<num> getXValues() => _getValues( getXValuesAndLabels() ) ;
+  List<num> getYValues() => _getValues( getYValuesAndLabels() ) ;
+  
+  List<num> _getValues(Map<num,String> map) {
+    List<num> vals = [] ;
     
-    for ( var v in labelsMap.keys ) {
-      labelsVals.add(v) ;
+    for ( var v in map.keys ) {
+      vals.add(v) ;
     }
     
-    labelsVals.sort( (n1,n2) => n1<n2 ? -1 : (n1==n2 ? 0 : 1) ) ;
+    vals.sort( (n1,n2) => n1<n2 ? -1 : (n1==n2 ? 0 : 1) ) ;
     
-    return labelsVals ;
+    return vals ;
   }
   
-  Map<num,String> getLabelsMap() {
-    
-    Map<num,String> labelsMap = {} ;
+  Map<num,String> getXValuesAndLabels() {
+    Map<num,String> map = {} ;
     
     for (var s in _series) {
-      List<String> labels = s.getLabels() ;
-      List<num> labelsVals = s.getLabelsValues() ;
+      List<String> labels = s.getXLabels() ;
+      List<num> values = s.getXValues() ;
       
       for (int i = 0 ; i < labels.length ; i++) {
         var l = labels[i] ;
-        var lv = labelsVals[i] ;
+        var v = values[i] ;
         
-        labelsMap[lv] = l ;
+        map[v] = l ;
       }
     }
    
-    return labelsMap ;
+    return map ;
   }
+  
+  Map<num,String> getYValuesAndLabels() {
+      Map<num,String> map = {} ;
+      
+      for (var s in _series) {
+        List<String> labels = s.getYLabels() ;
+        List<num> values = s.getYValues() ;
+        
+        for (int i = 0 ; i < labels.length ; i++) {
+          var l = labels[i] ;
+          var v = values[i] ;
+          
+          map[v] = l ;
+        }
+      }
+     
+      return map ;
+    }
   
   /////////////////////////////////////////////////////////////////////////////////////
   

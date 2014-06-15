@@ -106,142 +106,105 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
     context.lineWidth = axisSize ;
     context.fillStyle = labelsColor ;
     
-    List<List> ret = chart.getLabelsNamesAndLabelsValues() ;
-    
-    List<String> labelsNames = ret[0] ;
-    List<num> labelsVals = ret[1] ;
     
     //////////////////////////////////////////
     // horizontal labels:
     
-    num valsInit = labelsVals.first ;
-    num valsEnd = labelsVals.last ;
+    List<List> ret = chart.getLists_XLabelsAndXValues() ;
+        
+    List<String> xLabels = ret[0] ;
+    List<num> xValues = ret[1] ;
+    
+    _drawAxisLabels(chart, context, xLabels, xValues, axisXinit, axisXend, true) ;
+    
+
+    //////////////////////////////////////////
+    // vertical labels:
+    
+    List<List> ret2 = chart.getLists_YLabelsAndYValues() ;
+        
+    List<String> yLabels = ret2[0] ;
+    List<num> yValues = ret2[1] ;
+    
+    _drawAxisLabels(chart, context, yLabels, yValues, axisYinit, axisYend, false) ;
+    
+  }
+  
+  void _drawAxisLabels(XCharts chart, CanvasRenderingContext2D context, List<String> labels, List<num> values, Point axisInit, Point axisEnd, bool horizontal) {
+    num valsInit = values.first ;
+    num valsEnd = values.last ;
     
     num valsRange = valsEnd - valsInit ;
     
-    int axixXwidth = axisXend.x - axisXinit.x ;
+    int axisSize = horizontal ? axisEnd.x - axisInit.x : axisInit.y - axisEnd.y ;
     
-    num labelTextY = axisYinit.y+14 ;
+    num labelPos = horizontal ? axisInit.y+labelsFontSize+5 : axisInit.x-(labelsFontSize) ;
     
-    num labelXAxisMarkPointYInit = axisXinit.y-labelXAxisMarkSize ;
-    num labelXAxisMarkPointYEnd = axisXinit.y ;
+    num labelAxisMarkPointInit = horizontal ? axisInit.y-labelXAxisMarkSize : axisInit.x ;
+    num labelAxisMarkPointEnd = horizontal ? axisInit.y : axisInit.x+labelYAxisMarkSize ;
     
-    int lastXAxisLabelEnd = -1000000000000 ;
+    int lastAxisLabelEnd = null ;
     
-    for (int i = 0; i < labelsNames.length ; i++) {
-      String ln = labelsNames[i] ;
-      num lv = labelsVals[i] ;
+    for (int i = 0; i < labels.length ; i++) {
+      String label = labels[i] ;
+      num val = values[i] ;
       
-      TextMetrics textMetrics = context.measureText(ln) ;
+      TextMetrics textMetrics = context.measureText(label) ;
       
-      double lnWidth = textMetrics.width ;
+      double labelWidth = textMetrics.width ;
       
-      double valRangeRatio = (lv-valsInit) / valsRange ;
+      double valRangeRatio = (val-valsInit) / valsRange ;
       
-      int labelX = axisXinit.x + ( axixXwidth * valRangeRatio ).toInt() ;
+      int valInAxis = horizontal
+          ? 
+          axisInit.x + ( axisSize * valRangeRatio ).toInt()
+          :
+          axisInit.y - ( axisSize * valRangeRatio ).toInt()
+          ;
       
-      int labelXtext = labelX - (lnWidth ~/ 2) ;
+      int labelPos1 = horizontal ? labelPos : labelPos - labelWidth.toInt() ;
       
-      if (labelXtext < lastXAxisLabelEnd) continue ;
+      int labelPos2 = horizontal
+          ?
+          valInAxis - (labelWidth ~/ 2)
+          :
+          valInAxis + (labelsFontSize ~/ 2) -2
+          ;
+      
+      if (horizontal) {
+        if ( lastAxisLabelEnd != null && labelPos2 < lastAxisLabelEnd) continue ;  
+      }
+      else {
+        if ( lastAxisLabelEnd != null && labelPos2 > lastAxisLabelEnd) continue ;
+      }
       
       if (i > 0) {
         context.beginPath() ;
         
-        context.lineTo( labelX , labelXAxisMarkPointYInit ) ;
-        context.lineTo( labelX , labelXAxisMarkPointYEnd ) ;
+        if (horizontal) {
+          context.lineTo( valInAxis , labelAxisMarkPointInit ) ;
+          context.lineTo( valInAxis , labelAxisMarkPointEnd ) ;  
+        }
+        else {
+          context.lineTo( labelAxisMarkPointInit , valInAxis ) ;
+          context.lineTo( labelAxisMarkPointEnd , valInAxis ) ;
+        }
         
         context.stroke() ;
       }
       
-      context.fillText(ln, labelXtext, labelTextY) ;
-      
-      lastXAxisLabelEnd = labelXtext + lnWidth.toInt() + 4 ;
-    }
-    
-    //////////////////////////////////////////
-    // vertical labels:
-    
-    List retYAxisScale = _getYAxisScale(chart) ;
-    
-    num yAxisMinVal = retYAxisScale[0] ;
-    num yAxisMaxVal = retYAxisScale[1] ;
-    List<num> yAxisVals = retYAxisScale[2] ;
-    
-    if (startScalToZero) yAxisMinVal = 0 ;
-    
-    num yAxisRangeVal = yAxisMaxVal - yAxisMinVal ;
-    
-    int axixYheight = axisYinit.y - axisYend.y ;
-    
-    num labelYAxisMarkPointXInit = axisYinit.x ;
-    num labelYAxisMarkPointXEnd = axisXinit.x+labelYAxisMarkSize ;
-    
-    int lastLabelYAxisEnd = 1000000000000 ;
-    
-    for (int i = 0 ; i < yAxisVals.length ; i++) {
-      var v = yAxisVals[i] ;
-      String vs = v.toString() ;
-      
-      var metrics = context.measureText(vs) ;
-      
-      double vRange = (v-yAxisMinVal) / yAxisRangeVal ;
-      
-      num x = axisYinit.x - (metrics.width+4) ;
-      num y = axisYend.y + ((1-vRange) * axixYheight) ;
-      
-      num textX = x - 3 ;
-      num textY = y + (labelsFontSize ~/ 2) -1 ;
-      
-      if ( textY > lastLabelYAxisEnd ) continue ;
-      
-      context.fillText(vs, textX, textY) ;
-      
-      if (i < yAxisVals.length-1) {
-        context.beginPath() ;
-        
-        context.lineTo( labelYAxisMarkPointXInit , y ) ;
-        context.lineTo( labelYAxisMarkPointXEnd , y ) ;
-        
-        context.stroke() ;
+      if (horizontal) {
+        context.fillText(label, labelPos2, labelPos1) ;
+        lastAxisLabelEnd = labelPos2 + labelWidth.toInt() + 4 ;
+      }
+      else {
+        context.fillText(label, labelPos1, labelPos2) ;
+        lastAxisLabelEnd = labelPos2 - (labelsFontSize+10) ; 
       }
       
-      lastLabelYAxisEnd = (textY-20).toInt() ;
     }
-    
   }
   
-  List _getYAxisScale(XCharts chart) {
-    var series = chart._series ;
-    
-    num minVal = null ;
-    num maxVal = null ;
-    
-    Map<num,num> valsMap = {} ;
-    
-    for (var s in series) {
-      var data = s.data ;
-      
-      for (var d in data) {
-        var v = d.value ;
-        
-        if (minVal == null || v < minVal) minVal = v ;
-        if (maxVal == null || v > maxVal) maxVal = v ;
-        
-        valsMap[v] = v ;
-      }
-    }
-    
-    List<num> vals = [] ;
-
-    for (var v in valsMap.values) {
-      vals.add(v) ;
-    }
-    
-    vals.sort((a,b) => a < b ? -1 : (a == b ? 0 : 1) ) ;
-    
-    return [ minVal , maxVal , vals ] ;
-  }
- 
 }
 
 class XChartsTypeDot extends XChartsTypeLine {
@@ -292,24 +255,24 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
     Point axisYinit = axisPoints[2] ;
     Point axisYend = axisPoints[3] ;
     
-    List ret = _getYAxisScale(chart) ;
+    List<num> yVals = chart.getYValues() ;
     
-    num minVal = ret[0] ;
-    num maxVal = ret[1] ;
+    num yValsMin = yVals.first ;
+    num yValsMax = yVals.last ;
     
-    if (startScalToZero) minVal = 0 ;
+    if (startScalToZero) yValsMin = 0 ;
     
-    num rangeVal = maxVal - minVal ;
+    num yValsRange = yValsMax - yValsMin ;
     
     int axixYheight = axisYinit.y - axisYend.y ;
     int axixXwidth = axisXend.x - axisXinit.x ;
     
-    List<num> labelsVals = chart.getLabelsValues() ;
+    List<num> labelsVals = chart.getXValues() ;
     
-    num labelValInit = labelsVals.first ;
-    num labelValEnd = labelsVals.last ;
+    num xValMin = labelsVals.first ;
+    num xValMax = labelsVals.last ;
         
-    num labelValRange = labelValEnd - labelValInit ;
+    num xValRange = xValMax - xValMin ;
     
     ///////////////////
     
@@ -340,14 +303,14 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
       for (int j = 0 ; j < data.length ; j++) {
         var d = data[j] ;
         
-        var v = d.value ;
-        var lv = d.labelValue ;
+        var vX = d.valueY ;
+        var vY = d.valueX ;
         
-        double valRatio = (v-minVal) / rangeVal ;
-        double labelValRatio = (lv-labelValInit) / labelValRange ;
+        double valXRatio = (vX-yValsMin) / yValsRange ;
+        double valYRatio = (vY-xValMin) / xValRange ;
         
-        num valX = axisXinit.x + axixXwidth * labelValRatio ;
-        num valY = axisYend.y + axixYheight * (1-valRatio) ;
+        num valX = axisXinit.x + axixXwidth * valYRatio ;
+        num valY = axisYend.y + axixYheight * (1-valXRatio) ;
         
         points.add( new Point(valX,valY) ) ;
         
@@ -441,3 +404,32 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
   }
   
 }
+
+
+class XChartsTypeHeatMap extends XChartsType {
+  
+  CanvasImageSource backgroundImage ;
+  num backgroundImageAlpha = 1.0 ;
+  
+  XChartsTypeHeatMap( [ this.backgroundImage ] ) {
+    
+  }
+  
+  
+  @override
+  List<XChartsElement> drawChart(XCharts chart, CanvasRenderingContext2D context) {
+    int w = chart.width ;
+    int h = chart.height ;
+    
+    if (backgroundImage != null) {
+      num prevAlpha = context.globalAlpha ;
+      context.globalAlpha = backgroundImageAlpha ;
+      context.drawImage(backgroundImage, 0,0) ;  
+      context.globalAlpha = prevAlpha ;
+    }
+    
+    return null ;
+  }
+
+}
+
