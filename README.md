@@ -62,6 +62,9 @@ TODO
 CHANGELOG
 ---------
 
+  * version: 0.1.1:
+  Added heat map support.
+
   * version: 0.1.0:
   1st version. Only lines and dots charts.
 
