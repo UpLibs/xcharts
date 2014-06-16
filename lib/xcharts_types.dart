@@ -411,15 +411,27 @@ class XChartsTypeHeatMap extends XChartsType {
   CanvasImageSource backgroundImage ;
   num backgroundImageAlpha = 1.0 ;
   
+  CanvasElement heatCanvas ;
+  
   XChartsTypeHeatMap( [ this.backgroundImage ] ) {
-    
+    this.heatCanvas = new CanvasElement() ;
   }
   
+  
+  bool showIndividualData = false ;
+  
+  num heatAlphaMin = 0.30 ;
+  num heatAlphaMax = 0.80 ;
   
   @override
   List<XChartsElement> drawChart(XCharts chart, CanvasRenderingContext2D context) {
     int w = chart.width ;
     int h = chart.height ;
+    
+    this.heatCanvas.width = w ;
+    this.heatCanvas.height = h ;
+    
+    CanvasRenderingContext heatContext = this.heatCanvas.getContext('2d') ;
     
     if (backgroundImage != null) {
       num prevAlpha = context.globalAlpha ;
@@ -427,9 +439,154 @@ class XChartsTypeHeatMap extends XChartsType {
       context.drawImage(backgroundImage, 0,0) ;  
       context.globalAlpha = prevAlpha ;
     }
+  
+    if (showIndividualData) {
+      _drawMap(chart, context) ;
+    }
+    else {
+      _drawMap(chart, heatContext) ;
+      
+      var prevGlobalAlpha = context.globalAlpha ;
+      context.globalAlpha = heatAlphaMax ;
+      context.drawImage(heatCanvas, 0,0) ;
+      context.globalAlpha = prevGlobalAlpha ;
+    }
     
     return null ;
   }
+  
+  num minDensityTolerance = 0.20 ;
+  num maxDensityTolerance = 0.20 ;
+  
+  void _drawMap(XCharts chart, CanvasRenderingContext2D context) {
+    Map<XChartsData,double> heatMap = _calcHeatMap(chart) ;
+    
+    List<double> densities = [] ;
+    densities.addAll( heatMap.values ) ;
+    densities.sort( (a,b) => a<b ? -1 : (a==b ? 0 : 1) ) ;
+    
+    double minDensity = densities.first ; 
+    double maxDensity = densities.last ;
+    
+    if (minDensity == maxDensity) {
+      minDensity-- ;
+      if (minDensity < 0) minDensity = 0.0 ;
+      maxDensity = minDensity+1.3 ;
+    }
+    
+    double rangeDensity = maxDensity - minDensity ;
+    
+    if (minDensityTolerance > 0) {
+      minDensity += minDensityTolerance * (rangeDensity * 0.45) ;
+    }
+    
+    if (maxDensityTolerance > 0) {
+      maxDensity -= maxDensityTolerance * (rangeDensity * 0.45) ;
+    }
+    
+    if (minDensityTolerance > 0 || maxDensityTolerance > 0) {
+      rangeDensity = maxDensity - minDensity ;  
+    }
+    
+    List<XChartsData> orderedKeys = [] ;
+    orderedKeys.addAll( heatMap.keys ) ;
+    orderedKeys.sort( (d1,d2) {
+      double dens1 = heatMap[d1] ;
+      double dens2 = heatMap[d2] ;
+      
+      return dens1 < dens2 ? -1 : ( dens1 == dens2 ? 0 : 1) ;
+    } ) ;
+    
+    num heatAlphaRange = heatAlphaMax - heatAlphaMin ;
+    
+    for (var data in orderedKeys) {
+      double density = heatMap[data] ;
+
+      double densityRatio = (density-minDensity) ;
+      if (densityRatio < 0) densityRatio = 0.0 ;
+      densityRatio /=  rangeDensity ;
+      if (densityRatio > 1) densityRatio = 1.0 ; 
+      
+      int hue = ( (1-densityRatio) * 240).toInt() ;
+      
+      double heatAlpha ;
+      if (showIndividualData) {
+        heatAlpha = heatAlphaMin + (densityRatio * heatAlphaRange) ;
+      }
+      else {
+        double ratio = heatAlphaMin/heatAlphaMax ;
+        double range = 1-ratio ; 
+        heatAlpha = ratio + (densityRatio * range) ;
+      }
+      
+      context.fillStyle = 'hsla($hue, 100%, 50%, $heatAlpha)' ;
+      
+      var d = heatMap[data] ;
+      context.beginPath() ;
+      
+      if ( data.width != null && data.height != null ) {
+        if (!showIndividualData) {
+          context.clearRect(data.x, data.y, data.width, data.height) ;
+        }
+        context.rect(data.x, data.y, data.width, data.height) ;  
+      }
+      else {
+        num r ;
+        
+        if (data.width != null) r = data.width ;
+        else if (data.height != null) r = data.height ;
+        else r = heatSpreadSize ;
+        
+        if (r < 1) r = 1 ;
+        
+        context.arc(data.x, data.y, r, 0, 360) ;  
+      }
+      
+      
+      context.fill() ;
+    }
+    
+  }
+  
+  num heatSpreadSize = 20 ;
+  
+  Map<XChartsData,double> _calcHeatMap(XCharts chart) {
+    
+    List<XChartsData> allData = chart.getAllSeriesData() ;
+    
+    Map<XChartsData,double> densityMap = {} ;
+    
+    for (var data in allData) {
+      double d = densityMap[data] ;
+      densityMap[data] = d != null ? d+1 : 1.0 ;
+    }
+    
+    Map<Point,double> spreadMap = {} ;
+    
+    for (var data in allData) {
+      for (var data2 in densityMap.keys) {
+        if ( data == data2 ) continue ;
+        
+        double dist = data.centerPoint.distanceTo(data2.centerPoint) ;
+        
+        double distRatio = 1 - (dist / heatSpreadSize) ;
+        
+        if (distRatio > 0 && distRatio <= 1) {
+          double spread = heatSpreadSize * distRatio ; 
+          var d = spreadMap[data2] ;
+          spreadMap[data2] = d != null ? d+spread : spread ;
+        }
+      }
+    }
+    
+    for (var p in spreadMap.keys) {
+      var s = spreadMap[p] ;
+      densityMap[p] += s ;
+    }
+   
+    return densityMap ;
+  }
+  
 
 }
 

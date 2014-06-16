@@ -52,6 +52,16 @@ class XChartsDataSeries {
     
     return vals ;
   }
+  
+  List<Point> getXYValues() {
+    List<Point> vals = [] ;
+    
+    for (var d in data) {
+      vals.add( new Point( d.valueX , d.valueY ) ) ;
+    }
+    
+    return vals ;
+  }
 
   
 }
@@ -68,6 +78,20 @@ class XChartsData {
   String get labelY => _labelY != null ? _labelY : valueY.toString() ;
   
   XChartsData( this.valueX , this.valueY , [this._labelX , this._labelY , this.hint]) ;
+  
+  int width ;
+  int height ;
+  
+  num get x => valueX ;
+  num get y => valueY ;
+
+  Point get point => new Point(x,y) ;
+  Point get centerPoint => new Point(x + (width != null ? width/2 : 0) , y + (height != null ? height/2 : 0) ) ;
+
+  @override
+  String toString() {
+    return "$x [$labelX] , $y [$labelY] ; $width x $height <$hint>" ;
+  }
   
 }
 
@@ -229,22 +253,66 @@ class XCharts {
   }
   
   Map<num,String> getYValuesAndLabels() {
-      Map<num,String> map = {} ;
+    Map<num,String> map = {} ;
+    
+    for (var s in _series) {
+      List<String> labels = s.getYLabels() ;
+      List<num> values = s.getYValues() ;
       
-      for (var s in _series) {
-        List<String> labels = s.getYLabels() ;
-        List<num> values = s.getYValues() ;
+      for (int i = 0 ; i < labels.length ; i++) {
+        var l = labels[i] ;
+        var v = values[i] ;
         
-        for (int i = 0 ; i < labels.length ; i++) {
-          var l = labels[i] ;
-          var v = values[i] ;
-          
-          map[v] = l ;
-        }
+        map[v] = l ;
       }
-     
-      return map ;
     }
+   
+    return map ;
+  }
+  
+  List<Point> getXYValues() {
+    List<Point> vals = [] ;
+    
+    for (var s in _series) {
+      vals.addAll( s.getXYValues() ) ;
+    }
+    
+    vals.sort( (p1,p2) {
+      if ( p1.x < p2.x ) {
+        return -1 ;
+      }
+      else if ( p1.x == p2.x ) {
+        return p1.y < p2.y ? -1 : ( p1.y == p2.y ? 0 : 1 ) ;
+      }
+      else {
+        return 1 ;
+      }
+    } ) ;
+   
+    return vals ;
+  }
+  
+  List<XChartsData> getAllSeriesData() {
+    List<XChartsData> vals = [] ;
+        
+    for (var s in _series) {
+      vals.addAll( s.data ) ;
+    }
+    
+    vals.sort( (d1,d2) {
+      if ( d1.x < d2.x ) {
+        return -1 ;
+      }
+      else if ( d1.x == d2.x ) {
+        return d1.y < d2.y ? -1 : ( d1.y == d2.y ? 0 : 1 ) ;
+      }
+      else {
+        return 1 ;
+      }
+    } ) ;
+    
+    return vals ;
+  }
   
   /////////////////////////////////////////////////////////////////////////////////////
   
@@ -258,6 +326,7 @@ class XCharts {
   
   StreamSubscription<MouseEvent> _onMouseMoveSubscription ;
   StreamSubscription<MouseEvent> _onMouseClickSubscription ;
+  StreamSubscription<MouseEvent> _onWindowResizeSubscription ;
   
   void _checkCanvasAtached(Element parent) {
     if ( identical( this._parent , parent ) ) return ;
@@ -274,11 +343,14 @@ class XCharts {
     
     if ( _onMouseMoveSubscription != null ) _onMouseMoveSubscription.cancel() ;
     if ( _onMouseClickSubscription != null ) _onMouseClickSubscription.cancel() ;
+    if ( _onWindowResizeSubscription != null ) _onWindowResizeSubscription.cancel() ;
     
     _onMouseMoveSubscription = _canvas.onMouseMove.listen( _processMouseMove ) ;
     _onMouseClickSubscription = _canvas.onClick.listen( _processMouseClick ) ;
     
     _updateSize() ;
+    
+    _onWindowResizeSubscription = window.onResize.listen( (e) => repaint() ) ;
     
   }
   
