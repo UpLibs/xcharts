@@ -62,6 +62,9 @@ TODO
 CHANGELOG
 ---------
 
+  * version: 0.1.2:
+  Added bar charts support.
+  
   * version: 0.1.1:
   Added heat map support.
 

@@ -36,14 +36,17 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
     int marginBottom = this.marginBottom+labelsXAxisAreaHeight ;
     int marginLeft = this.marginLeft+labelsYAxisAreaWidth ;
     
-    Point axisXinit = new Point(marginLeft, h-marginBottom) ;
-    Point axisXend = new Point(marginLeft+(w-(marginLeft+marginRight)), h-marginBottom) ;
+    Point axisXinit = new Point(marginLeft+_axisXMarginLeft, h-marginBottom) ;
+    Point axisXend = new Point(marginLeft+(w-(marginLeft+marginRight+_axisXMarginLeft+_axisXMarginRight)), h-marginBottom) ;
     
     Point axisYinit = new Point(marginLeft, h-marginBottom) ;
     Point axisYend = new Point(marginLeft, marginTop ) ;
     
     return [axisXinit, axisXend, axisYinit, axisYend] ;
   }
+  
+  int _axisXMarginLeft = 20 ;
+  int _axisXMarginRight = 10 ;
   
   void _drawChartAxis(XCharts chart, CanvasRenderingContext2D context) {
     
@@ -61,8 +64,8 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
         
     context.beginPath() ;
     
-    context.lineTo( axisXinit.x , axisXinit.y ) ;
-    context.lineTo( axisXend.x , axisXend.y ) ;
+    context.lineTo( axisXinit.x-_axisXMarginLeft , axisXinit.y ) ;
+    context.lineTo( axisXend.x+_axisXMarginRight , axisXend.y ) ;
     
     context.stroke() ;
     
@@ -220,6 +223,8 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
   
   XChartsTypeLine() {
     setMargin(15) ;
+    this._axisXMarginLeft = 0 ;
+    this._axisXMarginRight = 10 ;
   }
   
   @override
@@ -403,6 +408,185 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
     
   }
   
+}
+
+
+class XChartsTypeBar extends XChartsTypeWithXYAxis {
+  
+  XChartsTypeBar() {
+    setMargin(15) ;
+    _updateAxisMargin() ;
+  }
+  
+  void _updateAxisMargin() {
+    this._axisXMarginLeft = this._valuesBarWidth+this.labelYAxisMarkSize+1 ;
+    this._axisXMarginRight = this._valuesBarWidth+1 ;
+  }
+  
+  @override
+  List<XChartsElement> drawChart(XCharts chart, CanvasRenderingContext2D context) {
+    List ret = _drawChartValues(chart, context) ;
+    
+    super.drawChart(chart, context) ;
+    
+    List<List<Point>> seriesPoints = ret[0] ;
+    List<String> seriesColors = ret[1] ;
+    num xAxisX = ret[2] ;
+    num xAxisY = ret[3] ;
+    List<XChartsElement> chartElements = ret[4] ;
+    
+    return chartElements ;
+  }
+  
+  int _valuesBarWidth = 10 ;
+  
+  int get valuesBarWidth => this._valuesBarWidth ;
+  
+  set valuesBarWidth(num n) {
+    this._valuesBarWidth = n ;
+    _updateAxisMargin() ;
+  }
+  
+  int valuesBarBorder = 2 ;
+  double valuesFillColorAlpha = 0.7 ;
+  
+  List _drawChartValues(XCharts chart, CanvasRenderingContext2D context) {
+    int w = chart.width ;
+    int h = chart.height ;
+    
+    List<Point> axisPoints = _getAxisPoints(chart) ;
+    Point axisXinit = axisPoints[0] ;
+    Point axisXend = axisPoints[1] ;
+    Point axisYinit = axisPoints[2] ;
+    Point axisYend = axisPoints[3] ;
+    
+    List<num> yVals = chart.getYValues() ;
+    
+    num yValsMin = yVals.first ;
+    num yValsMax = yVals.last ;
+    
+    if (startScaleToZero) yValsMin = 0 ;
+    
+    num yValsRange = yValsMax - yValsMin ;
+    
+    int axixYheight = axisYinit.y - axisYend.y ;
+    int axixXwidth = axisXend.x - axisXinit.x ;
+    
+    List<num> labelsVals = chart.getXValues() ;
+    
+    num xValMin = labelsVals.first ;
+    num xValMax = labelsVals.last ;
+        
+    num xValRange = xValMax - xValMin ;
+    
+    ///////////////////
+    
+    var series = chart._series ;
+    
+    List<List<Point>> seriesPoints = [] ;
+    List<String> seriesColors = [] ;
+    
+    List<XChartsElement> chartElements = [] ;
+    
+    int valWidth = _valuesBarWidth ;
+    if (valWidth < 2) valWidth = 2 ;
+    
+    int valWidthHalf = valWidth ~/ 2 ;
+    
+    int xAxisY = axisXinit.y ;
+    
+    for (int i = 0 ; i < series.length ; i++) {
+      var s = series[i] ;
+    
+      var data = s.data ;
+      var dataColor = s.color ;
+    
+      if (dataColor == null) {
+        dataColor = chart.defaultColors[ i % chart.defaultColors.length ] ;
+      }
+      
+      List<Point> points = [] ;
+      
+      context.beginPath() ;
+      
+      for (int j = 0 ; j < data.length ; j++) {
+        var d = data[j] ;
+        
+        var vX = d.valueY ;
+        var vY = d.valueX ;
+        
+        double valXRatio = (vX-yValsMin) / yValsRange ;
+        double valYRatio = (vY-xValMin) / xValRange ;
+        
+        num valX = axisXinit.x + axixXwidth * valYRatio ;
+        num valY = axisYend.y + axixYheight * (1-valXRatio) ;
+        
+        points.add( new Point(valX,valY) ) ;
+        
+        num h = xAxisY - valY ;
+        int hAdjust = 0 ;
+        if (h < 3) {
+          h = 3 ;
+          hAdjust = 3 ;
+        }
+        
+        var elem = new XChartsElement(valX-valWidthHalf , valY-hAdjust , valWidth, h, i, j, s, d) ;
+        
+        chartElements.add(elem) ;
+      }
+      
+      seriesPoints.add(points) ;
+      seriesColors.add(dataColor) ;
+    }
+    
+    _drawChartValues_lines(seriesPoints, seriesColors, context, xAxisY);
+   
+    return [ seriesPoints , seriesColors , axisXinit.x , axisXinit.y , chartElements ] ;
+  }
+
+  void _drawChartValues_lines(List<List<Point>> seriesPoints, List<String> seriesColors, CanvasRenderingContext2D context, int xAxisY) {
+    
+    for (int i = 0 ; i < seriesPoints.length ; i++) {
+      List<Point> points = seriesPoints[i] ;
+      String dataColor = seriesColors[i] ;
+      String dataColorAlpha = XCharts.color2rgba(dataColor, valuesFillColorAlpha) ;
+      
+      context.fillStyle = XCharts.color2rgba(dataColor, valuesFillColorAlpha) ;
+      
+      int valWidth = _valuesBarWidth ;
+      if (valWidth < 2) valWidth = 2 ;
+      
+      int valWidthHalf = valWidth ~/ 2 ;
+      
+      context.strokeStyle = dataColor ;
+      context.fillStyle = dataColorAlpha ;
+      context.lineWidth = valuesBarBorder ;
+      
+      for (var p in points) {
+        
+        num h = xAxisY - p.y ;
+        
+        int hAdjust = 0 ;
+        if (h < 3) {
+          h = 3 ;
+          hAdjust = 3 ;
+        }
+        
+        context.beginPath() ;
+        context.rect(p.x - valWidthHalf, p.y-hAdjust , _valuesBarWidth, h) ;
+        context.fill() ;
+        
+        context.beginPath() ;
+        context.rect(p.x - valWidthHalf, p.y-hAdjust , _valuesBarWidth, h) ;
+        context.stroke();
+        
+      }
+    
+      
+    }
+  }
+  
+
 }
 
 
