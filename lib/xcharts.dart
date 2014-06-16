@@ -326,9 +326,10 @@ class XCharts {
   
   StreamSubscription<MouseEvent> _onMouseMoveSubscription ;
   StreamSubscription<MouseEvent> _onMouseClickSubscription ;
+  StreamSubscription<MouseEvent> _onParentResizeSubscription ;
   StreamSubscription<MouseEvent> _onWindowResizeSubscription ;
   
-  void _checkCanvasAtached(Element parent) {
+  void _checkCanvasAttached(Element parent) {
     if ( identical( this._parent , parent ) ) return ;
     
     if ( this._parent != null ) {
@@ -343,14 +344,16 @@ class XCharts {
     
     if ( _onMouseMoveSubscription != null ) _onMouseMoveSubscription.cancel() ;
     if ( _onMouseClickSubscription != null ) _onMouseClickSubscription.cancel() ;
+    if ( _onParentResizeSubscription != null ) _onParentResizeSubscription.cancel() ;
     if ( _onWindowResizeSubscription != null ) _onWindowResizeSubscription.cancel() ;
     
     _onMouseMoveSubscription = _canvas.onMouseMove.listen( _processMouseMove ) ;
     _onMouseClickSubscription = _canvas.onClick.listen( _processMouseClick ) ;
     
-    _updateSize() ;
+    _onParentResizeSubscription = _parent.onResize.listen( (e) => _updateSize() ) ;
+    _onWindowResizeSubscription = window.onResize.listen( (e) => _updateSize() ) ;
     
-    _onWindowResizeSubscription = window.onResize.listen( (e) => repaint() ) ;
+    _updateSize() ;
     
   }
   
@@ -415,10 +418,11 @@ class XCharts {
       _context.scale(window.devicePixelRatio, window.devicePixelRatio);
     }
     
+    repaint() ;
   }
   
   void showAt(Element parent) {
-    _checkCanvasAtached(parent) ;
+    _checkCanvasAttached(parent) ;
     
     repaint() ;
   }

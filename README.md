@@ -62,6 +62,9 @@ TODO
 CHANGELOG
 ---------
 
+  * version: 0.1.3:
+  Resize on window resize.
+  
   * version: 0.1.2:
   Added bar charts support.
   
