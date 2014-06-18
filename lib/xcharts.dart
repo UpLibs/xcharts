@@ -11,7 +11,9 @@ class XChartsDataSeries {
   List<XChartsData> data ;
   String color ;
   
-  XChartsDataSeries( this.name , this.data , [ this.color ]) ;
+  bool enabled ;
+  
+  XChartsDataSeries( this.name , this.data , [ this.color , this.enabled = true ]) ;
   
   List<String> getXLabels() {
     List<String> labels = [] ;
@@ -176,11 +178,16 @@ class XCharts {
   
   /////////////////////////////////////////////////////////////////////////////////////
   
-  List<XChartsDataSeries> _series = [] ;
+  List<XChartsDataSeries> _allSeries = [] ;
   
-  void addSeries(XChartsDataSeries serie) => _series.add(serie) ;
-  bool removeSeries(XChartsDataSeries serie) => _series.remove(serie) ;
-  bool containsSeries(XChartsDataSeries serie) => _series.contains(serie) ;
+  List<XChartsDataSeries> get _series => new List.from( this._allSeries.where( (s) => s.enabled ) ) ;
+  
+  List<XChartsDataSeries> get series => new List.from( this._allSeries ) ;
+  List<XChartsDataSeries> get seriesEnabled => new List.from( this._allSeries.where( (s) => s.enabled ) ) ;
+  
+  void addSeries(XChartsDataSeries serie) => _allSeries.add(serie) ;
+  bool removeSeries(XChartsDataSeries serie) => _allSeries.remove(serie) ;
+  bool containsSeries(XChartsDataSeries serie) => _allSeries.contains(serie) ;
   
   /////////////////////////////////////////////////////////////////////////////////////
   

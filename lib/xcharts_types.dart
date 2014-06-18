@@ -708,7 +708,7 @@ class XChartsTypeHeatMap extends XChartsType {
       var d = heatMap[data] ;
       context.beginPath() ;
       
-      if ( data.width != null && data.height != null ) {
+      if ( data.width != null && data.height != null && data.width > 0 && data.height > 0 ) {
         if (!showIndividualData) {
           context.clearRect(data.x, data.y, data.width, data.height) ;
         }
@@ -717,8 +717,8 @@ class XChartsTypeHeatMap extends XChartsType {
       else {
         num r ;
         
-        if (data.width != null) r = data.width ;
-        else if (data.height != null) r = data.height ;
+        if (data.width != null && data.width > 0) r = data.width ;
+        else if (data.height != null && data.height > 0) r = data.height ;
         else r = heatSpreadSize ;
         
         if (r < 1) r = 1 ;
