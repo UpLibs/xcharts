@@ -134,8 +134,8 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
   }
   
   void _drawAxisLabels(XCharts chart, CanvasRenderingContext2D context, List<String> labels, List<num> values, Point axisInit, Point axisEnd, bool horizontal) {
-    num valsInit = values.first ;
-    num valsEnd = values.last ;
+    num valsInit = values.isNotEmpty ? values.first : 0 ;
+    num valsEnd = values.isNotEmpty ? values.last : 1 ;
     
     num valsRange = valsEnd - valsInit ;
     
@@ -262,8 +262,8 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
     
     List<num> yVals = chart.getYValues() ;
     
-    num yValsMin = yVals.first ;
-    num yValsMax = yVals.last ;
+    num yValsMin = yVals.isNotEmpty ? yVals.first : 0 ;
+    num yValsMax = yVals.isNotEmpty ? yVals.last : 1 ;
     
     if (startScaleToZero) yValsMin = 0 ;
     
@@ -274,8 +274,8 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
     
     List<num> labelsVals = chart.getXValues() ;
     
-    num xValMin = labelsVals.first ;
-    num xValMax = labelsVals.last ;
+    num xValMin = labelsVals.isNotEmpty ? labelsVals.first : 0 ;
+    num xValMax = labelsVals.isNotEmpty ? labelsVals.last : 1 ;
         
     num xValRange = xValMax - xValMin ;
     
@@ -593,7 +593,7 @@ class XChartsTypeBar extends XChartsTypeWithXYAxis {
 class XChartsTypeHeatMap extends XChartsType {
   
   CanvasImageSource backgroundImage ;
-  num backgroundImageAlpha = 1.0 ;
+  num backgroundImageAlpha = 0.3 ;
   
   CanvasElement heatCanvas ;
   

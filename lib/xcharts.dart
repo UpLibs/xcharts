@@ -4,6 +4,7 @@ import 'dart:html';
 import 'dart:async';
 
 part './xcharts_types.dart' ;
+part './xcharts_timeline.dart' ;
 
 class XChartsDataSeries {
   
@@ -184,6 +185,13 @@ class XCharts {
   
   List<XChartsDataSeries> get series => new List.from( this._allSeries ) ;
   List<XChartsDataSeries> get seriesEnabled => new List.from( this._allSeries.where( (s) => s.enabled ) ) ;
+  
+  void clearSeries() => _allSeries.clear() ;
+  
+  void setSeries( List<XChartsDataSeries> series) {
+    _allSeries.clear() ;
+    _allSeries.addAll(series) ;
+  }
   
   void addSeries(XChartsDataSeries serie) => _allSeries.add(serie) ;
   bool removeSeries(XChartsDataSeries serie) => _allSeries.remove(serie) ;
@@ -477,10 +485,16 @@ class XCharts {
     
   }
   
+  int _parsePosition(String s) {
+    if (s == null) return null ;
+    if (s.endsWith("px")) return int.parse( s.substring(0 , s.length-2) ) ;
+    return null ;
+  }
+  
   Element _createHint(XChartsElement chartElem) {
-
-    int parentLeft = (chartElem.x.toInt() + chartElem.width.toInt() + 3).toInt() ;
-    int parentTop = chartElem.y.toInt() - 5 ;
+    
+    int parentLeft = _canvas.documentOffset.x + (chartElem.x.toInt() + chartElem.width.toInt() + 3).toInt() - 5 ;
+    int parentTop = _canvas.documentOffset.y + chartElem.y.toInt() - 5 ;
     
     Element elem = new DivElement() ;
     elem.style.position = 'absolute' ;
