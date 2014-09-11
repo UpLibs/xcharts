@@ -10,6 +10,12 @@ abstract class XChartsType {
   void setMargin(int size) {
     marginLeft = marginRight = marginTop = marginBottom = size ;
   }
+
+  void clearChart(XCharts chart, CanvasRenderingContext2D context) {
+    if (chart.width != null && chart.height != null) {
+      context.clearRect(0, 0, chart.width, chart.height) ;
+    }
+  }
   
   List<XChartsElement> drawChart(XCharts chart, CanvasRenderingContext2D context) ;
   
@@ -33,8 +39,19 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
     int w = chart.width ;
     int h = chart.height ;
     
-    int marginBottom = this.marginBottom+labelsXAxisAreaHeight ;
     int marginLeft = this.marginLeft+labelsYAxisAreaWidth ;
+    int marginTop = this.marginTop ;
+    int marginRight = this.marginRight ;
+    int marginBottom = this.marginBottom+labelsXAxisAreaHeight ;
+    
+    Rectangle areaMargins = chart._getDrawMainAreaMargins() ;
+    
+    if (areaMargins != null) {
+      marginLeft += areaMargins.left ;
+      marginTop += areaMargins.top ;
+      marginRight += areaMargins.width ;
+      marginBottom += areaMargins.height ;
+    }
     
     Point axisXinit = new Point(marginLeft+_axisXMarginLeft, h-marginBottom) ;
     Point axisXend = new Point(marginLeft+(w-(marginLeft+marginRight+_axisXMarginLeft+_axisXMarginRight)), h-marginBottom) ;
@@ -138,6 +155,7 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
     num valsEnd = values.isNotEmpty ? values.last : 1 ;
     
     num valsRange = valsEnd - valsInit ;
+    if (valsRange == 0) valsRange = 1.0 ;
     
     int axisSize = horizontal ? axisEnd.x - axisInit.x : axisInit.y - axisEnd.y ;
     
@@ -319,7 +337,7 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
         
         points.add( new Point(valX,valY) ) ;
         
-        var elem = new XChartsElement(valX-valRadius , valY-valRadius , valDiamiter, valDiamiter, i, j, s, d) ;
+        var elem = new XChartsElementHint(valX-valRadius , valY-valRadius , valDiamiter, valDiamiter, i, j, s, d) ;
         
         chartElements.add(elem) ;
       }
@@ -530,7 +548,7 @@ class XChartsTypeBar extends XChartsTypeWithXYAxis {
           hAdjust = 3 ;
         }
         
-        var elem = new XChartsElement(valX-valWidthHalf , valY-hAdjust , valWidth, h, i, j, s, d) ;
+        var elem = new XChartsElementHint(valX-valWidthHalf , valY-hAdjust , valWidth, h, i, j, s, d) ;
         
         chartElements.add(elem) ;
       }
@@ -736,7 +754,7 @@ class XChartsTypeHeatMap extends XChartsType {
   
   Map<XChartsData,double> _calcHeatMap(XCharts chart) {
     
-    List<XChartsData> allData = chart.getAllSeriesData() ;
+    List<XChartsData> allData = XCharts.getAllSeriesData(chart.series) ;
     
     Map<XChartsData,double> densityMap = {} ;
     

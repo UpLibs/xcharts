@@ -2,9 +2,11 @@ library xcharts;
 
 import 'dart:html';
 import 'dart:async';
+import 'dart:math' as Math ;
 
 part './xcharts_types.dart' ;
 part './xcharts_timeline.dart' ;
+part './xcharts_control.dart' ;
 
 class XChartsDataSeries {
   
@@ -14,7 +16,13 @@ class XChartsDataSeries {
   
   bool enabled ;
   
-  XChartsDataSeries( this.name , this.data , [ this.color , this.enabled = true ]) ;
+  XChartsDataSeries( this.name , this.data , [ this.color , this.enabled = true ]) {
+    sortData() ;  
+  }
+  
+  void sortData() {
+    this.data.sort( (a,b) => a.valueX.compareTo(b.valueX) ) ;
+  }
   
   List<String> getXLabels() {
     List<String> labels = [] ;
@@ -81,6 +89,14 @@ class XChartsData {
   String get labelY => _labelY != null ? _labelY : valueY.toString() ;
   
   XChartsData( this.valueX , this.valueY , [this._labelX , this._labelY , this.hint]) ;
+  
+  XChartsData clone() {
+    var clone = new XChartsData( this.valueX , this.valueY, this._labelX , this._labelY , this.hint ) ;
+    clone.width = this.width ;
+    clone.height = this.height ;
+    
+    return clone ;
+  }
   
   int width ;
   int height ;
@@ -191,6 +207,8 @@ class XCharts {
   void setSeries( List<XChartsDataSeries> series) {
     _allSeries.clear() ;
     _allSeries.addAll(series) ;
+    
+    requestRepaint() ;
   }
   
   void addSeries(XChartsDataSeries serie) => _allSeries.add(serie) ;
@@ -307,10 +325,10 @@ class XCharts {
     return vals ;
   }
   
-  List<XChartsData> getAllSeriesData() {
+  static List<XChartsData> getAllSeriesData(List<XChartsDataSeries> series) {
     List<XChartsData> vals = [] ;
         
-    for (var s in _series) {
+    for (var s in series) {
       vals.addAll( s.data ) ;
     }
     
@@ -341,8 +359,12 @@ class XCharts {
   
   StreamSubscription<MouseEvent> _onMouseMoveSubscription ;
   StreamSubscription<MouseEvent> _onMouseClickSubscription ;
+  StreamSubscription<MouseEvent> _onMousePressSubscription ;
+  StreamSubscription<MouseEvent> _onMouseReleaseSubscription ;
   StreamSubscription<MouseEvent> _onParentResizeSubscription ;
   StreamSubscription<MouseEvent> _onWindowResizeSubscription ;
+  
+  bool get isAttached => this._parent != null ;
   
   void _checkCanvasAttached(Element parent) {
     if ( identical( this._parent , parent ) ) return ;
@@ -359,11 +381,15 @@ class XCharts {
     
     if ( _onMouseMoveSubscription != null ) _onMouseMoveSubscription.cancel() ;
     if ( _onMouseClickSubscription != null ) _onMouseClickSubscription.cancel() ;
+    if ( _onMousePressSubscription != null ) _onMousePressSubscription.cancel() ;
+    if ( _onMouseReleaseSubscription != null ) _onMouseReleaseSubscription.cancel() ;
     if ( _onParentResizeSubscription != null ) _onParentResizeSubscription.cancel() ;
     if ( _onWindowResizeSubscription != null ) _onWindowResizeSubscription.cancel() ;
     
     _onMouseMoveSubscription = _canvas.onMouseMove.listen( _processMouseMove ) ;
     _onMouseClickSubscription = _canvas.onClick.listen( _processMouseClick ) ;
+    _onMousePressSubscription = _canvas.onMouseDown.listen( _processMousePress ) ;
+    _onMouseReleaseSubscription = _canvas.onMouseUp.listen( _processMouseRelease ) ;
     
     _onParentResizeSubscription = _parent.onResize.listen( (e) => _updateSize() ) ;
     _onWindowResizeSubscription = window.onResize.listen( (e) => _updateSize() ) ;
@@ -377,31 +403,108 @@ class XCharts {
     
     num x = e.offset.x ;
     num y = e.offset.y ;
-
-    _hintElements.clear() ;
+    
+    _processMouseMoveHints(e,x,y) ;
+    
+    _processMouseMoveControls(e, x, y) ;
     
     for (XChartsElement e in _chartElements) {
       if ( e.containsPoint(x, y) ) {
-        _hintElements.add(e) ;
-        
         _OnMouseOverChartElement(e) ;
       }
     }
     
-    _showHints() ;
-    
+    _checkNeedRepaint() ;
   }
+  
+  bool _mousePressed = false ;
+  
+  void _processMousePress(MouseEvent e) {
+    _mousePressed = true ;
+    
+    if (_chartElements == null) return ;
+    
+    num x = e.offset.x ;
+    num y = e.offset.y ;
+    
+    _processMousePressControls(e, x, y) ;
+    
+    _checkNeedRepaint() ;
+  }
+
+  void _processMouseRelease(MouseEvent e) {
+    _mousePressed = false ;
+    
+    if (_chartElements == null) return ;
+    
+    num x = e.offset.x ;
+    num y = e.offset.y ;
+    
+    _processMouseReleaseControls(e, x, y) ;
+    
+    _checkNeedRepaint() ;
+  }
+
+  
+  void _processMouseMoveControls(MouseEvent e, num x, num y) {
+    for (XChartsElement e in _chartElements) {
+      if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
+        e.mouseMove(this, x - e.x , y - e.y ) ;
+      }
+    }
+  }
+
+  void _processMouseClickControls(MouseEvent e, num x, num y) {
+    for (XChartsElement e in _chartElements) {
+      if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
+        e.mouseClick(this, x - e.x , y - e.y ) ;
+      }
+    }
+  }
+  
+  void _processMousePressControls(MouseEvent e, num x, num y) {
+    for (XChartsElement e in _chartElements) {
+      if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
+        e.mousePress(this, x - e.x , y - e.y ) ;
+      }
+    }
+  }
+
+  void _processMouseReleaseControls(MouseEvent e, num x, num y) {
+    for (XChartsElement e in _chartElements) {
+      if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
+        e.mouseRelease(this, x - e.x , y - e.y ) ;
+      }
+    }
+  }
+  
+  void _processMouseMoveHints(MouseEvent e, num x, num y) {
+    _hintElements.clear() ;
+        
+    for (XChartsElement e in _chartElements) {
+      if ( e is XChartsElementHint && e.containsPoint(x, y) ) {
+        _hintElements.add(e) ;
+      }
+    }
+    
+    _showHints() ;
+  }
+  
   void _processMouseClick(MouseEvent e) {
     if (_chartElements == null) return ;
     
     num x = e.offset.x ;
     num y = e.offset.y ;
+    
+    _processMouseClickControls(e, x, y) ;
 
     for (var e in _chartElements) {
       if ( e.containsPoint(x, y) ) {
         _OnMouseClickChartElement(e) ;
       }
     }
+    
+    _checkNeedRepaint() ;
   }
   
   void _OnMouseOverChartElement(XChartsElement elem) {
@@ -442,25 +545,208 @@ class XCharts {
     repaint() ;
   }
   
+  bool _needRepaint = false ;
+  
+  void requestRepaint() {
+    _needRepaint = true ;    
+  }
+  
+  void _checkNeedRepaint() {
+    if (_needRepaint) repaint() ;
+  }
+  
   List<XChartsElement> _chartElements ;
   
   void repaint() {
+    if ( !isAttached ) return ;
+    
+    _needRepaint = false ;
+    
+    _type.clearChart(this, _context) ;
     
     _chartElements = _type.drawChart(this, _context) ;
     
+    _paintControls() ;
+    
+  }
+  
+  void _paintControls() {
+    
+    for (var c in controls) {
+      var controlElems = c.drawControl(this, _context, this.width , this.height) ;
+      
+      if (controlElems != null) {
+        _chartElements.addAll(controlElems) ;
+      }
+    }
+    
+  }
+  
+  static List<XChartsData> getAllSeriesDataMean(List<XChartsDataSeries> allSeries) {
+    List<XChartsData> allData = [] ;
+    
+    for (var s in allSeries) {
+      allData.addAll(s.data) ;
+    }
+    
+    allData.sort( (d1,d2) => d1.valueX.compareTo(d2.valueX)  ) ;
+    
+    for (int i = 0 ; i < allData.length ; i++) {
+      XChartsData d1 = allData[i] ;
+      
+      num valX = d1.valueX ;
+      
+      num valY = d1.valueY ;
+      int valYSize = 1 ;
+      
+      for (int j = i+1 ; j < allData.length ;) {
+        XChartsData d2 = allData[j] ;
+        
+        if ( d2.valueX == valX ) {
+          valY += d2.valueY ;
+          valYSize++ ;
+          
+          allData.removeAt(j) ;
+        }
+        else {
+          break ;
+        }
+      }
+      
+      if (valYSize > 1) {
+        
+        allData[i] = d1.clone()
+                     ..valueY = valY/valYSize ;
+
+      }
+      
+    }
+    
+    return allData ;
+  }
+  
+  static List<XChartsData> getAllSeriesDataMax(List<XChartsDataSeries> allSeries) {
+    List<XChartsData> allData = [] ;
+    
+    for (var s in allSeries) {
+      allData.addAll(s.data) ;
+    }
+    
+    allData.sort( (d1,d2) => d1.valueX.compareTo(d2.valueX)  ) ;
+    
+    for (int i = 0 ; i < allData.length ; i++) {
+      XChartsData d1 = allData[i] ;
+      
+      num valX = d1.valueX ;
+      num valY = d1.valueY ;
+      
+      for (int j = i+1 ; j < allData.length ;) {
+        XChartsData d2 = allData[j] ;
+        
+        if ( d2.valueX == valX ) {
+          if (d2.valueY > valY) valY = d2.valueY ;
+          
+          allData.removeAt(j) ;
+        }
+        else {
+          break ;
+        }
+      }
+      
+      allData[i] = d1.clone()
+                   ..valueY = valY ;
+    }
+    
+    return allData ;
+  }
+  
+
+  static List<XChartsData> getAllSeriesDataMin(List<XChartsDataSeries> allSeries) {
+    List<XChartsData> allData = [] ;
+    
+    for (var s in allSeries) {
+      allData.addAll(s.data) ;
+    }
+    
+    allData.sort( (d1,d2) => d1.valueX.compareTo(d2.valueX)  ) ;
+    
+    for (int i = 0 ; i < allData.length ; i++) {
+      XChartsData d1 = allData[i] ;
+      
+      num valX = d1.valueX ;
+      num valY = d1.valueY ;
+      
+      for (int j = i+1 ; j < allData.length ;) {
+        XChartsData d2 = allData[j] ;
+        
+        if ( d2.valueX == valX ) {
+          if (d2.valueY < valY) valY = d2.valueY ;
+          
+          allData.removeAt(j) ;
+        }
+        else {
+          break ;
+        }
+      }
+      
+      allData[i] = d1.clone()
+                   ..valueY = valY ;
+    }
+    
+    return allData ;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  
+  List<XChartsControl> controls = [] ;
+  
+  void addControl(XChartsControl c) => controls.add(c) ;
+  bool removeControl(XChartsControl c) => controls.remove(c) ;
+  void clearControls() => controls.clear() ;
+  bool containsControl(XChartsControl c) => controls.contains(c) ;
+  List<XChartsControl> getControls() => new List.from( controls ) ;
+  
+  Rectangle _getDrawMainAreaMargins() {
+    if (controls.isEmpty) return null ;
+    
+    int left = 0 ;
+    int right = 0 ;
+    int top = 0 ;
+    int bottom = 0 ;
+    
+    for ( var c in controls ) {
+      
+      if (c.position == XChartsControl.CONTROL_POSITION_NORTH) {
+        top += c.height ;
+      }
+      else if (c.position == XChartsControl.CONTROL_POSITION_SOUTH) {
+        bottom += c.height ;
+      }
+      else if (c.position == XChartsControl.CONTROL_POSITION_WEST) {
+        left += c.height ;
+      }
+      else if (c.position == XChartsControl.CONTROL_POSITION_EAST) {
+        right += c.height ;
+      }
+      
+    }
+    
+    if ( left == 0 && right == 0 && top == 0 && bottom == 0 ) return null ;
+    
+    return new Rectangle(left, top, right, bottom) ;
   }
   
   ////////////////////////////////////////////////////////////////////////////////
   
-  List<XChartsElement> _hintElements = [] ;
+  List<XChartsElementHint> _hintElements = [] ;
   
-  Map<XChartsElement, Element> _currentHintElements = {} ;
+  Map<XChartsElementHint, Element> _currentHintElements = {} ;
   
   void _showHints() {
     
-    Iterable<XChartsElement> elemsIter = _hintElements.where((e) => e.containsHint()) ;
+    Iterable<XChartsElementHint> elemsIter = _hintElements.where((e) => e.containsHint()) ;
     
-    Map<XChartsElement, Element> hintsMap = {} ;
+    Map<XChartsElementHint, Element> hintsMap = {} ;
     
     for (var e in elemsIter) {
       var prevHint = _currentHintElements[e] ;
@@ -470,7 +756,7 @@ class XCharts {
       hintsMap[e] = prevHint ;
     }
     
-    List<XChartsElement> del = [] ;
+    List<XChartsElementHint> del = [] ;
     
     for (var e in _currentHintElements.keys) {
       if ( !hintsMap.containsKey(e) ) {
@@ -491,7 +777,7 @@ class XCharts {
     return null ;
   }
   
-  Element _createHint(XChartsElement chartElem) {
+  Element _createHint(XChartsElementHint chartElem) {
     
     int parentLeft = _canvas.documentOffset.x + (chartElem.x.toInt() + chartElem.width.toInt() + 3).toInt() - 5 ;
     int parentTop = _canvas.documentOffset.y + chartElem.y.toInt() - 5 ;
@@ -517,21 +803,22 @@ class XChartsElement {
   num y ;
   num width ;
   num height ;
+    
+  XChartsElement( this.x , this.y , this.width , this.height ) ;
   
-  int seriesIndex ;
-  int valueIndex ;
 
-  XChartsDataSeries series ;
-  XChartsData data ;
-  
-  XChartsElement( this.x , this.y , this.width , this.height , this.seriesIndex , this.valueIndex , this.series , this.data ) ;
+  bool sameDimension(num x, num y, num width, num height) {
+    return this.x == x
+        && this.y == y
+        && this.width == width
+        && this.height == height ;
+  }
   
   operator == (XChartsElement o) {
     return this.x == o.x
         && this.y == o.y
         && this.width == o.width
-        && this.seriesIndex == o.seriesIndex
-        && this.valueIndex == o.valueIndex ;
+        && this.height == o.height ;
   }
   
   int get hashCode {
@@ -540,13 +827,36 @@ class XChartsElement {
     result = 31 * result + y.toInt() ;
     result = 31 * result + width.toInt() ;
     result = 31 * result + height.toInt() ;
-    result = 31 * result + seriesIndex ;
-    result = 31 * result + valueIndex ;
     return result;
- }
+  }
   
   bool containsPoint(int x , int y) {
     return x > this.x && x <= this.x+this.width && y > this.y && y <= this.y+this.height ;
+  }
+  
+}
+
+class XChartsElementHint extends XChartsElement {
+
+  int seriesIndex ;
+  int valueIndex ;
+
+  XChartsDataSeries series ;
+  XChartsData data ;
+  
+  XChartsElementHint(num x, num y, num width, num height, this.seriesIndex, this.valueIndex, this.series, this.data) : super(x, y, width, height);
+
+  operator == (XChartsElementHint o) {
+    return super==(o)
+        && this.seriesIndex == o.seriesIndex
+        && this.valueIndex == o.valueIndex ;
+  }
+
+  int get hashCode {
+      int result = super.hashCode ;
+      result = 31 * result + seriesIndex ;
+      result = 31 * result + valueIndex ;
+      return result;
   }
   
   String get hint => data.hint ;
@@ -554,8 +864,6 @@ class XChartsElement {
   bool containsHint() {
     return data.hint != null ;
   }
-  
-  
   
 }
 
