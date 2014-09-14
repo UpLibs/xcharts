@@ -127,15 +127,17 @@ class XChartsTimelineDataHandler {
         _loadPeriod(end-1 , end+endDiff) ;
       }
       
+      _notifyDataChange() ;
+      
     }
     
   }
   
-  void _loadPeriod(int init, int end) {
+  bool _loadPeriod(int init, int end) {
     Point<int> period = new Point(init,end) ;
 
     if ( _loadingPeriods.contains(period) ) {
-      return ;
+      return false ;
     }
     
     print("load period> $period") ;
@@ -143,14 +145,17 @@ class XChartsTimelineDataHandler {
     _loadingPeriods.add(period) ;
     
     this._populator.loadData( init , end ).then( (d) {
+      _loadingPeriods.remove(period) ;
+      
       if (d == null) {
         _updateData() ;
       }
       else {
         _addToTimelineData(d) ;
-        _loadingPeriods.remove(period) ;
       }
     }) ;
+    
+    return true ;
   }
   
   void _addToTimelineData(XChartsTimelineData timelineData) {
@@ -163,6 +168,8 @@ class XChartsTimelineDataHandler {
         if ( timelineData.initTime < this._timelineData.initTime ) this._timelineData.initTime = timelineData.initTime ;
         if ( timelineData.endTime > this._timelineData.endTime ) this._timelineData.endTime = timelineData.endTime ;
       }
+      
+      _notifyDataChange() ;
       
       return ;
     }
