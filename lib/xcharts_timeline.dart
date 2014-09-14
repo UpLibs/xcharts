@@ -154,6 +154,18 @@ class XChartsTimelineDataHandler {
   }
   
   void _addToTimelineData(XChartsTimelineData timelineData) {
+    if ( timelineData.isEmptySeries ) {
+      
+      if ( this._timelineData == null ) {
+        this._timelineData = new XChartsTimelineData( timelineData.initTime , timelineData.endTime , []) ;
+      }
+      else {
+        if ( timelineData.initTime < this._timelineData.initTime ) this._timelineData.initTime = timelineData.initTime ;
+        if ( timelineData.endTime > this._timelineData.endTime ) this._timelineData.endTime = timelineData.endTime ;
+      }
+      
+      return ;
+    }
 
     for ( XChartsDataSeries serie in timelineData.series ) {
       serie.sortData() ;
@@ -387,16 +399,25 @@ class XChartsTimelineData {
   
   XChartsTimelineData(this.initTime , this.endTime , this._series) ;
   
-  XChartsTimelineData.bySeries(this._series) {
-    List<num> minSeriesValue = new List.from( _series.map( (s) => s.data.first.valueX ) ) ;
-    minSeriesValue.sort( (num n1, num n2) => n1.compareTo(n2) ) ;
-    
-    List<num> maxSeriesValue = new List.from( _series.map( (s) => s.data.last.valueX ) ) ;
-    maxSeriesValue.sort( (num n1, num n2) => n2.compareTo(n1) ) ;
-    
-    this.initTime = minSeriesValue.first ;
-    this.endTime = maxSeriesValue.last ;
+  XChartsTimelineData.bySeries(this._series , [int initTime , int endTime]) {
+    if ( this._series == null || this._series.isEmpty ) {
+      this._series = [] ;
+      this.initTime = initTime != null ? initTime : 0 ;
+      this.endTime = endTime != null ? endTime : 0 ;
+    }
+    else {
+      List<num> minSeriesValue = new List.from( _series.map( (s) => s.data.first.valueX ) ) ;
+      minSeriesValue.sort( (num n1, num n2) => n1.compareTo(n2) ) ;
+      
+      List<num> maxSeriesValue = new List.from( _series.map( (s) => s.data.last.valueX ) ) ;
+      maxSeriesValue.sort( (num n1, num n2) => n2.compareTo(n1) ) ;
+      
+      this.initTime = minSeriesValue.first ;
+      this.endTime = maxSeriesValue.last ;
+    }
   }
+  
+  bool get isEmptySeries => this._series == null || this._series.isEmpty ;
   
   List<XChartsDataSeries> get series => new List.from( _series ) ;
  
