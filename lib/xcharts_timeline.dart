@@ -127,8 +127,6 @@ class XChartsTimelineDataHandler {
         _loadPeriod(end-1 , end+endDiff) ;
       }
       
-      _notifyDataChange() ;
-      
     }
     
   }
@@ -252,7 +250,6 @@ class XChartsTimelineDataHandler {
   bool _calling_listener_onTimelineDataChanged = false ;
   
   void _notifyDataChange() {
-    
     if (_calling_listener_onTimelineDataChanged) return ;
     
     try {
@@ -264,10 +261,24 @@ class XChartsTimelineDataHandler {
     finally {
       _calling_listener_onTimelineDataChanged = false ; 
     }
-    
-    
-    
   }
+  
+  bool _calling_listener_onTimelineSelectedDateChanged = false ;
+  
+  void _notifySelectedDateChanged() {
+    if (_calling_listener_onTimelineSelectedDateChanged) return ;
+    
+    try {
+      _calling_listener_onTimelineSelectedDateChanged = true ;
+      
+      if (this.listener != null) this.listener.onTimelineSelectedDateChanged(this) ;
+      
+    }
+    finally {
+      _calling_listener_onTimelineSelectedDateChanged = false ; 
+    }
+  }
+
   
   List<XChartsDataSeries> getSeries() {
     return new List.from( this._timelineData.series ) ;
@@ -291,6 +302,21 @@ class XChartsTimelineDataHandler {
     return ( this._selectEndTime - this._initTime ) / diff ; 
   }
 
+  bool _setSelectedTime(int selInit, int selEnd) {
+    if (selInit > selEnd) return false ;
+    
+    if ( this._selectInitTime == selInit && this._selectEndTime == selEnd ) return false ;
+    
+    this._selectInitTime = selInit ;
+    this._selectEndTime = selEnd ;
+        
+    _autoUpdateData() ;
+    
+    _notifySelectedDateChanged() ;
+    
+    return true ;
+  }
+  
   bool setSelectTimeByRatio(double selectInitTimeRatio, double selectEndTimeRatio) {
     if (selectInitTimeRatio < 0 || selectInitTimeRatio > 1) return false ;
     if (selectEndTimeRatio < 0 || selectEndTimeRatio > 1) return false ;
@@ -299,12 +325,10 @@ class XChartsTimelineDataHandler {
     
     int diff = this._endTime - this._initTime ;
     
-    this._selectInitTime = (this._initTime + ( diff * selectInitTimeRatio )).toInt() ;
-    this._selectEndTime = (this._initTime + ( diff * selectEndTimeRatio )).toInt() ;
-    
-    _autoUpdateData() ;
-    
-    return true ;
+    return _setSelectedTime(
+      (this._initTime + ( diff * selectInitTimeRatio )).toInt() ,
+      (this._initTime + ( diff * selectEndTimeRatio )).toInt()
+    ) ;
   }
   
   bool setSelectInitTimeByRatio(double selectInitTimeRatio) {
@@ -314,13 +338,7 @@ class XChartsTimelineDataHandler {
     
     int time = (this._initTime + ( diff * selectInitTimeRatio )).toInt() ;
     
-    if (time > this._selectEndTime) return false ;
-    
-    this._selectInitTime = time ;
-    
-    _autoUpdateData() ;
-    
-    return true ;
+    return _setSelectedTime(time, this._selectEndTime) ;
   }
 
   bool setSelectEndTimeByRatio(double selectEndTimeRatio) {
@@ -330,42 +348,19 @@ class XChartsTimelineDataHandler {
     
     int time = (this._initTime + ( diff * selectEndTimeRatio )).toInt() ;
     
-    if (time < this._selectInitTime) return false ;
-    
-    this._selectEndTime = time ;
-    
-    _autoUpdateData() ;
-    
-    return true ;
+    return _setSelectedTime(this._selectInitTime , time) ;
   }
   
   bool setSelectTime(int selectInitTime, int selectEndTime) {
-    if (selectInitTime > selectEndTime) return false ;
-    
-    this._selectInitTime = selectInitTime ;
-    this._selectEndTime = selectEndTime ;
-    
-    _autoUpdateData() ;
-    
-    return true ;
+    return _setSelectedTime(selectInitTime, selectEndTime) ;
   }
   
   bool setSelectInitTime(int selectInitTime) {
-    if (selectInitTime > this._selectEndTime) return false ;
-    this._selectInitTime = selectInitTime ;
-    
-    _autoUpdateData() ;
-    
-    return true ;
+    return _setSelectedTime(selectInitTime, this._selectEndTime) ;
   }
   
   bool setSelectEndTime(int selectEndTime) {
-    if (selectEndTime < this._selectInitTime) return false ;
-    this._selectEndTime = selectEndTime ;
-    
-    _autoUpdateData() ;
-    
-    return true ;
+    return _setSelectedTime(this._selectInitTime, selectEndTime) ;
   }
   
   List<XChartsDataSeries> selectSeries() {
@@ -446,7 +441,8 @@ abstract class XChartsTimelineDataPopulator {
 
 abstract class XChartsTimelineListener {
   
-  void onTimelineDataChanged( XChartsTimelineDataHandler timelineDataHandler ) ;
+  void onTimelineDataChanged( XChartsTimelineDataHandler timelineDataHandler ) {}
+  void onTimelineSelectedDateChanged( XChartsTimelineDataHandler timelineDataHandler ) {}
   
 }
 
