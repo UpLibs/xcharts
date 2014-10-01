@@ -211,9 +211,16 @@ class XCharts {
     requestRepaint() ;
   }
   
-  void addSeries(XChartsDataSeries serie) => _allSeries.add(serie) ;
-  bool removeSeries(XChartsDataSeries serie) => _allSeries.remove(serie) ;
-  bool containsSeries(XChartsDataSeries serie) => _allSeries.contains(serie) ;
+  void addSerie(XChartsDataSeries serie) => _allSeries.add(serie) ;
+  bool removeSerie(XChartsDataSeries serie) => _allSeries.remove(serie) ;
+  bool containsSerie(XChartsDataSeries serie) => _allSeries.contains(serie) ;
+  
+  XChartsDataSeries getSerie(String serieName) {
+    for ( var serie in _allSeries ) {
+      if (serie.name == serieName) return serie ;
+    }
+    return null ;
+  }
   
   /////////////////////////////////////////////////////////////////////////////////////
   

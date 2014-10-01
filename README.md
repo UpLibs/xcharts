@@ -62,6 +62,9 @@ TODO
 CHANGELOG
 ---------
 
+  * version: 0.1.4:
+  Add Controls support and timeline handler.
+  
   * version: 0.1.3:
   Resize on window resize.
   
