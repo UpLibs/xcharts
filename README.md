@@ -62,6 +62,9 @@ TODO
 CHANGELOG
 ---------
 
+  * version: 0.1.5:
+  Add properties to series.
+
   * version: 0.1.4:
   Add Controls support and timeline handler.
   

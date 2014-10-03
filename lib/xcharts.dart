@@ -74,6 +74,9 @@ class XChartsDataSeries {
     return vals ;
   }
 
+  Map<String, dynamic> _props = {} ;
+  
+  Map<String, dynamic> get properties => _props ;
   
 }
 
