@@ -379,7 +379,7 @@ class XChartsTimelineDataHandler {
       var d = _selectData( s.data, initTime, endTime ) ;
       
       if (d.isNotEmpty) {
-        var serie = new XChartsDataSeries( s.name, d ) ;
+        var serie = new XChartsDataSeries( s.name, d,s.color,s.enabled ) ;
         serie.properties.addAll( s.properties );
         
         series.add(serie) ;
