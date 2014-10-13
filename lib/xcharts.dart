@@ -170,7 +170,7 @@ class XCharts {
   }
   
 
-  List<String> defaultColors = [
+  List<String> _defaultColors = [
   "#376085" ,
   "#68d4e6" ,
   "#ffbc41" ,
@@ -181,6 +181,13 @@ class XCharts {
   "rgb(181, 185, 198)"
   ];
 
+  List<String> get defaultColors => new List.from( _defaultColors ) ;
+  
+  set defaultColors(List<String> colors) => _defaultColors = new List.from(colors) ;
+  
+  String getColor(int serieIndex) {
+    return _defaultColors[ serieIndex % _defaultColors.length ] ;
+  }
   
   //////////////////////////////////////////////////////////////////////
   

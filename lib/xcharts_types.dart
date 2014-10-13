@@ -316,7 +316,8 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
       var dataColor = s.color ;
     
       if (dataColor == null) {
-        dataColor = chart.defaultColors[ i % chart.defaultColors.length ] ;
+        dataColor = chart.getColor( i ) ;
+        s.color = dataColor;
       }
       
       List<Point> points = [] ;
@@ -520,7 +521,8 @@ class XChartsTypeBar extends XChartsTypeWithXYAxis {
       var dataColor = s.color ;
     
       if (dataColor == null) {
-        dataColor = chart.defaultColors[ i % chart.defaultColors.length ] ;
+        dataColor = chart.getColor(i) ;
+        s.color = dataColor ;
       }
       
       List<Point> points = [] ;
