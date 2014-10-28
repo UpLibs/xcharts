@@ -338,8 +338,10 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
         
         points.add( new Point(valX,valY) ) ;
         
+        var elemDetail = new XChartsElementDetail(valX-valRadius , valY-valRadius , valDiamiter, valDiamiter,i, j,vX, vY, s, d);
         var elem = new XChartsElementHint(valX-valRadius , valY-valRadius , valDiamiter, valDiamiter, i, j, s, d) ;
         
+        chartElements.add(elemDetail);
         chartElements.add(elem) ;
       }
       
@@ -550,8 +552,10 @@ class XChartsTypeBar extends XChartsTypeWithXYAxis {
           hAdjust = 3 ;
         }
         
+        var elemDetail = new XChartsElementDetail(valX-valWidthHalf, valY-hAdjust , valWidth, h,i, j,vX, vY, s, d);
         var elem = new XChartsElementHint(valX-valWidthHalf , valY-hAdjust , valWidth, h, i, j, s, d) ;
         
+        chartElements.add(elemDetail);
         chartElements.add(elem) ;
       }
       

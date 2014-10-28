@@ -516,21 +516,28 @@ class XCharts {
     _processMouseClickControls(e, x, y) ;
 
     for (var e in _chartElements) {
-      if ( e.containsPoint(x, y) ) {
+      if ( e.containsPoint(x, y) && e is XChartsElementDetail ) {
         _OnMouseClickChartElement(e) ;
+        break;
       }
     }
     
     _checkNeedRepaint() ;
   }
   
+  StreamController<XChartsElement> _controller_onMouseOverChartElement = new StreamController<XChartsElement>() ;
+  Stream<XChartsElement> get onMouseOverChartElement => _controller_onMouseOverChartElement.stream ;
+  
+  StreamController<XChartsElement> _controller_onMouseClickChartElement = new StreamController<XChartsElement>() ;
+    Stream<XChartsElement> get onMouseClickChartElement => _controller_onMouseClickChartElement.stream ;
+  
   void _OnMouseOverChartElement(XChartsElement elem) {
-    
+    _controller_onMouseOverChartElement.add(elem) ;
   }
   
   
   void _OnMouseClickChartElement(XChartsElement elem) {
-      
+    _controller_onMouseClickChartElement.add(elem) ;
   }
 
   void _updateSize() {
@@ -877,6 +884,41 @@ class XChartsElementHint extends XChartsElement {
   }
   
   String get hint => data.hint ;
+  
+  bool containsHint() {
+    return data.hint != null ;
+  }
+  
+}
+
+class XChartsElementDetail extends XChartsElement {
+
+
+  XChartsDataSeries series ;
+  XChartsData data ;
+  int seriesIndex ;
+  int valueIndex ;
+  num graphicX;
+  num graphicY;
+  
+  XChartsElementDetail(num x, num y, num width, num height,this.seriesIndex, this.valueIndex, this.graphicX, this.graphicY, this.series, this.data) : super(x, y, width, height);
+
+  
+  String get hint => data.hint ;
+  
+  operator == (XChartsElementHint o) {
+    return super==(o)
+        && this.seriesIndex == o.seriesIndex
+        && this.valueIndex == o.valueIndex ;
+  }
+
+  int get hashCode {
+      int result = super.hashCode ;
+      result = 31 * result + seriesIndex ;
+      result = 31 * result + valueIndex ;
+      return result;
+  }
+
   
   bool containsHint() {
     return data.hint != null ;
