@@ -529,7 +529,7 @@ class XCharts {
   Stream<XChartsElement> get onMouseOverChartElement => _controller_onMouseOverChartElement.stream ;
   
   StreamController<XChartsElement> _controller_onMouseClickChartElement = new StreamController<XChartsElement>() ;
-    Stream<XChartsElement> get onMouseClickChartElement => _controller_onMouseClickChartElement.stream ;
+  Stream<XChartsElement> get onMouseClickChartElement => _controller_onMouseClickChartElement.stream ;
   
   void _OnMouseOverChartElement(XChartsElement elem) {
     _controller_onMouseOverChartElement.add(elem) ;
