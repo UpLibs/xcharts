@@ -466,7 +466,7 @@ class XCharts {
   void _processMouseMoveControls(MouseEvent e, num x, num y) {
     for (XChartsElement e in _chartElements) {
       if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
-        e.mouseMove(this, x - e.x , y - e.y ) ;
+        e.mouseMove(this, x - e._x , y - e._y ) ;
       }
     }
   }
@@ -474,7 +474,7 @@ class XCharts {
   void _processMouseClickControls(MouseEvent e, num x, num y) {
     for (XChartsElement e in _chartElements) {
       if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
-        e.mouseClick(this, x - e.x , y - e.y ) ;
+        e.mouseClick(this, x - e._x , y - e._y ) ;
       }
     }
   }
@@ -482,7 +482,7 @@ class XCharts {
   void _processMousePressControls(MouseEvent e, num x, num y) {
     for (XChartsElement e in _chartElements) {
       if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
-        e.mousePress(this, x - e.x , y - e.y ) ;
+        e.mousePress(this, x - e._x , y - e._y ) ;
       }
     }
   }
@@ -490,7 +490,7 @@ class XCharts {
   void _processMouseReleaseControls(MouseEvent e, num x, num y) {
     for (XChartsElement e in _chartElements) {
       if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
-        e.mouseRelease(this, x - e.x , y - e.y ) ;
+        e.mouseRelease(this, x - e._x , y - e._y ) ;
       }
     }
   }
@@ -803,8 +803,8 @@ class XCharts {
   
   Element _createHint(XChartsElementHint chartElem) {
     
-    int parentLeft = _canvas.documentOffset.x + (chartElem.x.toInt() + chartElem.width.toInt() + 3).toInt() - 5 ;
-    int parentTop = _canvas.documentOffset.y + chartElem.y.toInt() - 5 ;
+    int parentLeft = _canvas.documentOffset.x + (chartElem._x.toInt() + chartElem._width.toInt() + 3).toInt() - 5 ;
+    int parentTop = _canvas.documentOffset.y + chartElem._y.toInt() - 5 ;
     
     Element elem = new DivElement() ;
     elem.style.position = 'absolute' ;
@@ -823,106 +823,105 @@ class XCharts {
 
 class XChartsElement {
   
-  num x ;
-  num y ;
-  num width ;
-  num height ;
+  num _x ;
+  num _y ;
+  num _width ;
+  num _height ;
     
-  XChartsElement( this.x , this.y , this.width , this.height ) ;
+  XChartsElement( this._x , this._y , this._width , this._height ) ;
   
 
   bool sameDimension(num x, num y, num width, num height) {
-    return this.x == x
-        && this.y == y
-        && this.width == width
-        && this.height == height ;
+    return this._x == x
+        && this._y == y
+        && this._width == width
+        && this._height == height ;
   }
   
   operator == (XChartsElement o) {
-    return this.x == o.x
-        && this.y == o.y
-        && this.width == o.width
-        && this.height == o.height ;
+    return this._x == o._x
+        && this._y == o._y
+        && this._width == o._width
+        && this._height == o._height ;
   }
   
   int get hashCode {
     int result = 1;
-    result = 31 * result + x.toInt() ;
-    result = 31 * result + y.toInt() ;
-    result = 31 * result + width.toInt() ;
-    result = 31 * result + height.toInt() ;
+    result = 31 * result + _x.toInt() ;
+    result = 31 * result + _y.toInt() ;
+    result = 31 * result + _width.toInt() ;
+    result = 31 * result + _height.toInt() ;
     return result;
   }
   
   bool containsPoint(int x , int y) {
-    return x > this.x && x <= this.x+this.width && y > this.y && y <= this.y+this.height ;
+    return x > this._x && x <= this._x+this._width && y > this._y && y <= this._y+this._height ;
   }
   
 }
 
 class XChartsElementHint extends XChartsElement {
 
-  int seriesIndex ;
-  int valueIndex ;
+  int _seriesIndex ;
+  int _valueIndex ;
 
-  XChartsDataSeries series ;
-  XChartsData data ;
+  XChartsDataSeries _series ;
+  XChartsData _data ;
   
-  XChartsElementHint(num x, num y, num width, num height, this.seriesIndex, this.valueIndex, this.series, this.data) : super(x, y, width, height);
+  XChartsElementHint(num x, num y, num width, num height, this._seriesIndex, this._valueIndex, this._series, this._data) : super(x, y, width, height);
 
   operator == (XChartsElementHint o) {
     return super==(o)
-        && this.seriesIndex == o.seriesIndex
-        && this.valueIndex == o.valueIndex ;
+        && this._seriesIndex == o._seriesIndex
+        && this._valueIndex == o._valueIndex ;
   }
 
   int get hashCode {
       int result = super.hashCode ;
-      result = 31 * result + seriesIndex ;
-      result = 31 * result + valueIndex ;
+      result = 31 * result + _seriesIndex ;
+      result = 31 * result + _valueIndex ;
       return result;
   }
   
-  String get hint => data.hint ;
+  String get hint => _data.hint ;
   
   bool containsHint() {
-    return data.hint != null ;
+    return _data.hint != null ;
   }
   
 }
 
 class XChartsElementDetail extends XChartsElement {
 
-
-  XChartsDataSeries series ;
-  XChartsData data ;
-  int seriesIndex ;
-  int valueIndex ;
-  num graphicX;
-  num graphicY;
+  int _seriesIndex ;
+  int _valueIndex ;
+  num _graphicX;
+  num _graphicY;
   
-  XChartsElementDetail(num x, num y, num width, num height,this.seriesIndex, this.valueIndex, this.graphicX, this.graphicY, this.series, this.data) : super(x, y, width, height);
+  XChartsElementDetail(num x, num y, num width, num height,this._seriesIndex, this._valueIndex, this._graphicX, this._graphicY) : super(x, y, width, height);
 
   
-  String get hint => data.hint ;
+  
+  int get seriesIndex => _seriesIndex ;
+  
+  int get graphicX => _graphicX ;
+  int get graphicY => _graphicY ;
+
+
   
   operator == (XChartsElementHint o) {
     return super==(o)
-        && this.seriesIndex == o.seriesIndex
-        && this.valueIndex == o.valueIndex ;
+        && this._seriesIndex == o._seriesIndex
+        && this._valueIndex == o._valueIndex ;
   }
 
   int get hashCode {
       int result = super.hashCode ;
-      result = 31 * result + seriesIndex ;
-      result = 31 * result + valueIndex ;
+      result = 31 * result + _seriesIndex ;
+      result = 31 * result + _valueIndex ;
       return result;
   }
 
-  
-  bool containsHint() {
-    return data.hint != null ;
-  }
   
 }
 

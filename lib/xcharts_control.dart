@@ -220,7 +220,7 @@ class XChartsControlElementTimeline extends XChartsControlElement {
   }
   
   void _setSelection(XCharts chart, num x, num y) {
-    double ratio = x / this.width ;
+    double ratio = x / this._width ;
     
     if (ratio > 1) ratio = 1.0 ;
     else if (ratio < 0) ratio = 0.0 ;
