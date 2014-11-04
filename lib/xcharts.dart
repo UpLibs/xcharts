@@ -771,11 +771,14 @@ class XCharts {
     Iterable<XChartsElementHint> elemsIter = _hintElements.where((e) => e.containsHint()) ;
     
     Map<XChartsElementHint, Element> hintsMap = {} ;
-    
+    int distance = 0 ;
     for (var e in elemsIter) {
       var prevHint = _currentHintElements[e] ;
       if (prevHint == null) {
-        _currentHintElements[e] = prevHint = _createHint(e) ;
+        
+        _currentHintElements[e] = prevHint = _createHint(e,distance) ;
+        //Distance hint in px
+        distance += 18;
       }
       hintsMap[e] = prevHint ;
     }
@@ -801,10 +804,10 @@ class XCharts {
     return null ;
   }
   
-  Element _createHint(XChartsElementHint chartElem) {
+  Element _createHint(XChartsElementHint chartElem, int distanceOtherHint) {
     
     int parentLeft = _canvas.documentOffset.x + (chartElem._x.toInt() + chartElem._width.toInt() + 3).toInt() - 5 ;
-    int parentTop = _canvas.documentOffset.y + chartElem._y.toInt() - 5 ;
+    int parentTop = _canvas.documentOffset.y + chartElem._y.toInt() - 5 - distanceOtherHint ;
     
     Element elem = new DivElement() ;
     elem.style.position = 'absolute' ;
