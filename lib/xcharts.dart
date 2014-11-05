@@ -20,6 +20,14 @@ class XChartsDataSeries {
     sortData() ;  
   }
   
+  XChartsDataSeries clone(){
+    XChartsDataSeries clone = new XChartsDataSeries(this.name, this.data);
+    clone.color = this.color;
+    clone.enabled = this.enabled;
+    
+    return clone;
+  }
+  
   void sortData() {
     this.data.sort( (a,b) => a.valueX.compareTo(b.valueX) ) ;
   }
@@ -91,6 +99,17 @@ class XChartsData {
   String get labelX => _labelX != null ? _labelX : valueX.toString() ;
   String get labelY => _labelY != null ? _labelY : valueY.toString() ;
   
+  void set labelY(String label) {
+      this._labelY = label;           
+  }
+  
+  void set labelX(String label) {
+      this._labelX = label;           
+  }
+   
+
+//   set labelY => _labelY != null ? _labelY : valueY.toString() ;
+  
   XChartsData( this.valueX , this.valueY , [this._labelX , this._labelY , this.hint]) ;
   
   XChartsData clone() {
@@ -106,6 +125,12 @@ class XChartsData {
   
   num get x => valueX ;
   num get y => valueY ;
+  
+  operator == (XChartsData o) {
+    return super==(o)
+        && this.valueY == o.valueY
+        && this.valueX == o.valueX ;
+  }
 
   Point get point => new Point(x,y) ;
   Point get centerPoint => new Point(x + (width != null ? width/2 : 0) , y + (height != null ? height/2 : 0) ) ;
@@ -912,7 +937,7 @@ class XChartsElementDetail extends XChartsElement {
 
 
   
-  operator == (XChartsElementHint o) {
+  operator == (XChartsElementDetail o) {
     return super==(o)
         && this._seriesIndex == o._seriesIndex
         && this._valueIndex == o._valueIndex ;
