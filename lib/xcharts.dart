@@ -106,10 +106,7 @@ class XChartsData {
   void set labelX(String label) {
       this._labelX = label;           
   }
-   
-
-//   set labelY => _labelY != null ? _labelY : valueY.toString() ;
-  
+     
   XChartsData( this.valueX , this.valueY , [this._labelX , this._labelY , this.hint]) ;
   
   XChartsData clone() {
