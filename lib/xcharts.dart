@@ -829,7 +829,9 @@ class XCharts {
   Element _createHint(XChartsElementHint chartElem, int distanceOtherHint) {
     
     int parentLeft = _canvas.documentOffset.x + (chartElem._x.toInt() + chartElem._width.toInt() + 3).toInt() - 5 ;
-    int parentTop = _canvas.documentOffset.y + chartElem._y.toInt() - 5 - distanceOtherHint ;
+    
+    int top = _canvas.documentOffset.y + chartElem._y.toInt() - 5;
+    int parentTop = top < 170 ? (top + distanceOtherHint) : (top - distanceOtherHint);
     
     Element elem = new DivElement() ;
     elem.style.position = 'absolute' ;
