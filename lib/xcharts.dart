@@ -537,28 +537,31 @@ class XCharts {
     
     _processMouseClickControls(e, x, y) ;
 
+    List elementsMouseClicks = new List();
     for (var e in _chartElements) {
       if ( e.containsPoint(x, y) && e is XChartsElementDetail && e._enabled ) {
-        _OnMouseClickChartElement(e) ;
-        break;
+        elementsMouseClicks.add(e);
       }
     }
     
+    if(!elementsMouseClicks.isEmpty){
+      _OnMouseClickChartElement(elementsMouseClicks) ;
+    }
     _checkNeedRepaint() ;
   }
   
   StreamController<XChartsElement> _controller_onMouseOverChartElement = new StreamController<XChartsElement>() ;
   Stream<XChartsElement> get onMouseOverChartElement => _controller_onMouseOverChartElement.stream ;
   
-  StreamController<XChartsElement> _controller_onMouseClickChartElement = new StreamController<XChartsElement>() ;
-  Stream<XChartsElement> get onMouseClickChartElement => _controller_onMouseClickChartElement.stream ;
+  StreamController<List<XChartsElement>> _controller_onMouseClickChartElement = new StreamController<List<XChartsElement>>() ;
+  Stream<List<XChartsElement>> get onMouseClickChartElement => _controller_onMouseClickChartElement.stream ;
   
   void _OnMouseOverChartElement(XChartsElement elem) {
     _controller_onMouseOverChartElement.add(elem) ;
   }
   
   
-  void _OnMouseClickChartElement(XChartsElement elem) {
+  void _OnMouseClickChartElement(List<XChartsElement> elem) {
     _controller_onMouseClickChartElement.add(elem) ;
   }
 
