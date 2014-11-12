@@ -299,7 +299,7 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
     
     ///////////////////
     
-    var series = chart._series ;
+    var series = chart.series ;
     
     List<List<Point>> seriesPoints = [] ;
     List<String> seriesColors = [] ;
@@ -338,15 +338,18 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
         
         points.add( new Point(valX,valY) ) ;
         
-        var elemDetail = new XChartsElementDetail(valX-valRadius , valY-valRadius , valDiamiter, valDiamiter,i, j,vX, vY);
-        var elem = new XChartsElementHint(valX-valRadius , valY-valRadius , valDiamiter, valDiamiter, i, j, s, d) ;
+        var elemDetail = new XChartsElementDetail(valX-valRadius , valY-valRadius , valDiamiter, valDiamiter,i, j,vX, vY, s.enabled);
+        var elem = new XChartsElementHint(valX-valRadius , valY-valRadius , valDiamiter, valDiamiter, i, j, s, d, s.enabled) ;
         
         chartElements.add(elemDetail);
         chartElements.add(elem) ;
       }
       
-      seriesPoints.add(points) ;
-      seriesColors.add(dataColor) ;
+      if(s.enabled){
+       seriesPoints.add(points) ;
+       seriesColors.add(dataColor) ;
+      }
+      
     }
     
     _drawChartValues_lines(seriesPoints, seriesColors, context, axisXinit.y);
@@ -552,8 +555,8 @@ class XChartsTypeBar extends XChartsTypeWithXYAxis {
           hAdjust = 3 ;
         }
         
-        var elemDetail = new XChartsElementDetail(valX-valWidthHalf, valY-hAdjust , valWidth, h,i, j,vX, vY);
-        var elem = new XChartsElementHint(valX-valWidthHalf , valY-hAdjust , valWidth, h, i, j, s, d) ;
+        var elemDetail = new XChartsElementDetail(valX-valWidthHalf, valY-hAdjust , valWidth, h,i, j,vX, vY, s.enabled);
+        var elem = new XChartsElementHint(valX-valWidthHalf , valY-hAdjust , valWidth, h, i, j, s, d, s.enabled) ;
         
         chartElements.add(elemDetail);
         chartElements.add(elem) ;

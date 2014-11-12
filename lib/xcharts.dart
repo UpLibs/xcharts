@@ -20,6 +20,14 @@ class XChartsDataSeries {
     sortData() ;  
   }
   
+  XChartsDataSeries clone(){
+    XChartsDataSeries clone = new XChartsDataSeries(this.name, this.data);
+    clone.color = this.color;
+    clone.enabled = this.enabled;
+    
+    return clone;
+  }
+  
   void sortData() {
     this.data.sort( (a,b) => a.valueX.compareTo(b.valueX) ) ;
   }
@@ -91,6 +99,14 @@ class XChartsData {
   String get labelX => _labelX != null ? _labelX : valueX.toString() ;
   String get labelY => _labelY != null ? _labelY : valueY.toString() ;
   
+  void set labelY(String label) {
+      this._labelY = label;           
+  }
+  
+  void set labelX(String label) {
+      this._labelX = label;           
+  }
+     
   XChartsData( this.valueX , this.valueY , [this._labelX , this._labelY , this.hint]) ;
   
   XChartsData clone() {
@@ -106,6 +122,12 @@ class XChartsData {
   
   num get x => valueX ;
   num get y => valueY ;
+  
+  operator == (XChartsData o) {
+    return super==(o)
+        && this.valueY == o.valueY
+        && this.valueX == o.valueX ;
+  }
 
   Point get point => new Point(x,y) ;
   Point get centerPoint => new Point(x + (width != null ? width/2 : 0) , y + (height != null ? height/2 : 0) ) ;
@@ -499,7 +521,7 @@ class XCharts {
     _hintElements.clear() ;
         
     for (XChartsElement e in _chartElements) {
-      if ( e is XChartsElementHint && e.containsPoint(x, y) ) {
+      if ( e is XChartsElementHint && e.containsPoint(x, y) && e._enabled ) {
         _hintElements.add(e) ;
       }
     }
@@ -516,7 +538,7 @@ class XCharts {
     _processMouseClickControls(e, x, y) ;
 
     for (var e in _chartElements) {
-      if ( e.containsPoint(x, y) && e is XChartsElementDetail ) {
+      if ( e.containsPoint(x, y) && e is XChartsElementDetail && e._enabled ) {
         _OnMouseClickChartElement(e) ;
         break;
       }
@@ -807,7 +829,9 @@ class XCharts {
   Element _createHint(XChartsElementHint chartElem, int distanceOtherHint) {
     
     int parentLeft = _canvas.documentOffset.x + (chartElem._x.toInt() + chartElem._width.toInt() + 3).toInt() - 5 ;
-    int parentTop = _canvas.documentOffset.y + chartElem._y.toInt() - 5 - distanceOtherHint ;
+    
+    int top = _canvas.documentOffset.y + chartElem._y.toInt() - 5;
+    int parentTop = top < 170 ? (top + distanceOtherHint) : (top - distanceOtherHint);
     
     Element elem = new DivElement() ;
     elem.style.position = 'absolute' ;
@@ -830,8 +854,9 @@ class XChartsElement {
   num _y ;
   num _width ;
   num _height ;
+  bool _enabled ;
     
-  XChartsElement( this._x , this._y , this._width , this._height ) ;
+  XChartsElement( this._x , this._y , this._width , this._height, [this._enabled] ) ;
   
 
   bool sameDimension(num x, num y, num width, num height) {
@@ -871,7 +896,7 @@ class XChartsElementHint extends XChartsElement {
   XChartsDataSeries _series ;
   XChartsData _data ;
   
-  XChartsElementHint(num x, num y, num width, num height, this._seriesIndex, this._valueIndex, this._series, this._data) : super(x, y, width, height);
+  XChartsElementHint(num x, num y, num width, num height, this._seriesIndex, this._valueIndex, this._series, this._data, bool enabled) : super(x, y, width, height, enabled);
 
   operator == (XChartsElementHint o) {
     return super==(o)
@@ -901,9 +926,7 @@ class XChartsElementDetail extends XChartsElement {
   num _graphicX;
   num _graphicY;
   
-  XChartsElementDetail(num x, num y, num width, num height,this._seriesIndex, this._valueIndex, this._graphicX, this._graphicY) : super(x, y, width, height);
-
-  
+  XChartsElementDetail(num x, num y, num width, num height,this._seriesIndex, this._valueIndex, this._graphicX, this._graphicY, bool enabled) : super(x, y, width, height, enabled);
   
   int get seriesIndex => _seriesIndex ;
   
@@ -912,7 +935,7 @@ class XChartsElementDetail extends XChartsElement {
 
 
   
-  operator == (XChartsElementHint o) {
+  operator == (XChartsElementDetail o) {
     return super==(o)
         && this._seriesIndex == o._seriesIndex
         && this._valueIndex == o._valueIndex ;
