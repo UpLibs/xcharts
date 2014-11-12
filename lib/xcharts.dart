@@ -521,7 +521,7 @@ class XCharts {
     _hintElements.clear() ;
         
     for (XChartsElement e in _chartElements) {
-      if ( e is XChartsElementHint && e.containsPoint(x, y) ) {
+      if ( e is XChartsElementHint && e.containsPoint(x, y) && e._enabled ) {
         _hintElements.add(e) ;
       }
     }
@@ -538,7 +538,7 @@ class XCharts {
     _processMouseClickControls(e, x, y) ;
 
     for (var e in _chartElements) {
-      if ( e.containsPoint(x, y) && e is XChartsElementDetail ) {
+      if ( e.containsPoint(x, y) && e is XChartsElementDetail && e._enabled ) {
         _OnMouseClickChartElement(e) ;
         break;
       }
@@ -854,8 +854,9 @@ class XChartsElement {
   num _y ;
   num _width ;
   num _height ;
+  bool _enabled ;
     
-  XChartsElement( this._x , this._y , this._width , this._height ) ;
+  XChartsElement( this._x , this._y , this._width , this._height, [this._enabled] ) ;
   
 
   bool sameDimension(num x, num y, num width, num height) {
@@ -895,7 +896,7 @@ class XChartsElementHint extends XChartsElement {
   XChartsDataSeries _series ;
   XChartsData _data ;
   
-  XChartsElementHint(num x, num y, num width, num height, this._seriesIndex, this._valueIndex, this._series, this._data) : super(x, y, width, height);
+  XChartsElementHint(num x, num y, num width, num height, this._seriesIndex, this._valueIndex, this._series, this._data, bool enabled) : super(x, y, width, height, enabled);
 
   operator == (XChartsElementHint o) {
     return super==(o)
@@ -925,9 +926,7 @@ class XChartsElementDetail extends XChartsElement {
   num _graphicX;
   num _graphicY;
   
-  XChartsElementDetail(num x, num y, num width, num height,this._seriesIndex, this._valueIndex, this._graphicX, this._graphicY) : super(x, y, width, height);
-
-  
+  XChartsElementDetail(num x, num y, num width, num height,this._seriesIndex, this._valueIndex, this._graphicX, this._graphicY, bool enabled) : super(x, y, width, height, enabled);
   
   int get seriesIndex => _seriesIndex ;
   
