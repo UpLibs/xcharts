@@ -803,7 +803,7 @@ class XCharts {
         
         _currentHintElements[e] = prevHint = _createHint(e,distance) ;
         //Distance hint in px
-        distance += 18;
+        distance += 24 ;
       }
       hintsMap[e] = prevHint ;
     }
@@ -842,7 +842,23 @@ class XCharts {
     elem.style.top = "${parentTop}px";
     elem.style.backgroundColor = 'rgba(255,255,255 , 0.8)' ;
     elem.style.border = '1px solid rgba(0,0,0, 0.8)' ;
-    elem.text = chartElem.hint ;
+    
+    if ( chartElem.isHintHTML ) {
+      var uriPolicy = new XChartsHTMLUriPolicy() ;
+      
+      NodeValidator nodeValidator = new NodeValidatorBuilder()
+      ..allowImages()
+      ..allowHtml5( uriPolicy: uriPolicy)
+      ..allowInlineStyles()
+      ..allowTextElements()
+      ..allowSvg()
+      ;
+      
+      elem.setInnerHtml(chartElem.hint, validator: nodeValidator) ;
+    }
+    else {
+      elem.text = chartElem.hint ;  
+    }
     
     this._parent.children.add(elem) ;
     
@@ -850,6 +866,17 @@ class XCharts {
   }
   
 }
+
+
+class XChartsHTMLUriPolicy implements UriPolicy {
+  @override
+  bool allowsUri(String uri) {
+    return true ;
+  }
+}
+
+
+
 
 class XChartsElement {
   
@@ -914,7 +941,20 @@ class XChartsElementHint extends XChartsElement {
       return result;
   }
   
-  String get hint => _data.hint ;
+  String get hint {
+    if (  isHintHTML ) {
+      var s = _data.hint ;
+      return s.substring("<html>".length , s.length-"</html>".length) ;
+    }
+    else {
+      return _data.hint ;
+    }
+  }
+  
+  bool get isHintHTML {
+    var s = _data.hint.toLowerCase().trim() ;
+    return s.startsWith("<html>") && s.endsWith("</html>") ;
+  }
   
   bool containsHint() {
     return _data.hint != null ;
