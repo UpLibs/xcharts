@@ -48,9 +48,9 @@ class XChartsControlTimeline extends XChartsControl {
   int seriesDataType = SERIES_DATA_MAX ;
 
   String colorBackground = 'rgba(0,0,0, 0.10)' ;
-  String colorMax = '#ff0000' ;
-  String colorMin = '#ffff00' ;
-  String colorMean = '#0000ff' ;
+  String colorMax = '#1E3D6B' ;
+  String colorMin = '#00FFCD' ;
+  String colorMean = '#000FFF' ;
   
   double colorAlpha = 0.50 ;
   

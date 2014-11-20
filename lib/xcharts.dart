@@ -95,6 +95,7 @@ class XChartsData {
   String _labelX ;
   String _labelY ;
   String hint ;
+  int _hintHeight ;
   
   String get labelX => _labelX != null ? _labelX : valueX.toString() ;
   String get labelY => _labelY != null ? _labelY : valueY.toString() ;
@@ -107,15 +108,22 @@ class XChartsData {
       this._labelX = label;           
   }
      
-  XChartsData( this.valueX , this.valueY , [this._labelX , this._labelY , this.hint]) ;
+  XChartsData( this.valueX , this.valueY , [this._labelX , this._labelY , this.hint, this._hintHeight]) ;
   
   XChartsData clone() {
-    var clone = new XChartsData( this.valueX , this.valueY, this._labelX , this._labelY , this.hint ) ;
+    var clone = new XChartsData( this.valueX , this.valueY, this._labelX , this._labelY , this.hint , this._hintHeight ) ;
     clone.width = this.width ;
     clone.height = this.height ;
     
     return clone ;
   }
+  
+  static const int DEFAULT_HINT_HEIGHT = 24 ;
+  static const int MIN_HINT_HEIGHT = 2 ;
+  
+  int get hintHeight => _hintHeight == null ? DEFAULT_HINT_HEIGHT : _hintHeight ;
+  
+  set hintHeight(int height) => _hintHeight = height >= MIN_HINT_HEIGHT ? height : MIN_HINT_HEIGHT ;
   
   int width ;
   int height ;
@@ -803,7 +811,7 @@ class XCharts {
         
         _currentHintElements[e] = prevHint = _createHint(e,distance) ;
         //Distance hint in px
-        distance += 18;
+        distance += e.hintHeight ;
       }
       hintsMap[e] = prevHint ;
     }
@@ -842,7 +850,23 @@ class XCharts {
     elem.style.top = "${parentTop}px";
     elem.style.backgroundColor = 'rgba(255,255,255 , 0.8)' ;
     elem.style.border = '1px solid rgba(0,0,0, 0.8)' ;
-    elem.text = chartElem.hint ;
+    
+    if ( chartElem.isHintHTML ) {
+      var uriPolicy = new XChartsHTMLUriPolicy() ;
+      
+      NodeValidator nodeValidator = new NodeValidatorBuilder()
+      ..allowImages()
+      ..allowHtml5( uriPolicy: uriPolicy)
+      ..allowInlineStyles()
+      ..allowTextElements()
+      ..allowSvg()
+      ;
+      
+      elem.setInnerHtml(chartElem.hint, validator: nodeValidator) ;
+    }
+    else {
+      elem.text = chartElem.hint ;  
+    }
     
     this._parent.children.add(elem) ;
     
@@ -850,6 +874,17 @@ class XCharts {
   }
   
 }
+
+
+class XChartsHTMLUriPolicy implements UriPolicy {
+  @override
+  bool allowsUri(String uri) {
+    return true ;
+  }
+}
+
+
+
 
 class XChartsElement {
   
@@ -914,11 +949,26 @@ class XChartsElementHint extends XChartsElement {
       return result;
   }
   
-  String get hint => _data.hint ;
+  String get hint {
+    if (  isHintHTML ) {
+      var s = _data.hint ;
+      return s.substring("<html>".length , s.length-"</html>".length) ;
+    }
+    else {
+      return _data.hint ;
+    }
+  }
+  
+  bool get isHintHTML {
+    var s = _data.hint.toLowerCase().trim() ;
+    return s.startsWith("<html>") && s.endsWith("</html>") ;
+  }
   
   bool containsHint() {
     return _data.hint != null ;
   }
+  
+  int get hintHeight => _data.hintHeight ;
   
 }
 
