@@ -573,8 +573,17 @@ class XCharts {
     _controller_onMouseClickChartElement.add(elem) ;
   }
 
+  void resize() {
+    _updateSize() ;
+  }
+  
   void _updateSize() {
 
+    if ( _parent == null ) {
+      repaint() ;
+      return ;
+    }
+    
     int width = _parent.offsetWidth ;
     int height = _parent.offsetHeight ;
     
