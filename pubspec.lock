@@ -4,4 +4,4 @@ packages:
   numerical_collection:
     description: numerical_collection
     source: hosted
-    version: "0.1.1"
+    version: "0.1.2"

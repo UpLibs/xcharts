@@ -62,6 +62,9 @@ TODO
 CHANGELOG
 ---------
 
+  * version: 0.1.6:
+  Selection of series data and many upgrades.
+
   * version: 0.1.5:
   Add properties to series.
 
