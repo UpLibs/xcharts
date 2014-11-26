@@ -4,6 +4,8 @@ import 'dart:html';
 import 'dart:async';
 import 'dart:math' as Math ;
 
+import 'package:numerical_collection/numerical_collection.dart';
+
 part './xcharts_types.dart' ;
 part './xcharts_timeline.dart' ;
 part './xcharts_control.dart' ;
@@ -86,6 +88,14 @@ class XChartsDataSeries {
   
   Map<String, dynamic> get properties => _props ;
   
+  NumericalList asNumericalListX() {
+    return new NumericalList.fromList( getXValues() ) ;
+  }
+  
+  NumericalList asNumericalListY() {
+    return new NumericalList.fromList( getYValues() ) ;
+  }
+
 }
 
 class XChartsData {
@@ -880,6 +890,80 @@ class XCharts {
     this._parent.children.add(elem) ;
     
     return elem ;
+  }
+  
+  ///////////////////////////////////////////////////////////////////////////////////////
+  
+  NumericalList selectSeriesXValues( [bool uniqueValues = false] ) {
+    NumericalList nl = new NumericalList() ;
+    
+    for (var serie in this.series) {
+      List<num> vals = serie.getXValues() ;
+      
+      for (num v in vals) {
+        if (uniqueValues) nl.insertSortedUnique(v) ;
+        else nl.insertSorted(v) ;
+      }
+    }
+
+    return nl ;
+  }
+  
+  NumericalList selectSeriesYValues( [bool uniqueValues = false] ) {
+    NumericalList nl = new NumericalList() ;
+    
+    for (var serie in this.series) {
+      List<num> vals = serie.getYValues() ;
+      
+      for (num v in vals) {
+        if (uniqueValues) nl.insertSortedUnique(v) ;
+        else nl.insertSorted(v) ;
+      }
+    }
+
+    return nl ;
+  }
+  
+  NumericalList selectedSeriesByXValue( num xValue , [bool uniqueValues = false] ) {
+    return selectedSeriesByXValues( xValue , xValue , uniqueValues ) ;
+  }
+  
+  NumericalList selectedSeriesByXValues( num init, num end , [bool uniqueValues = false] ) {
+    NumericalList nl = new NumericalList() ;
+    
+    for (var serie in this.series) {
+      List<num> vals = serie.getXValues() ;
+      
+      for (num v in vals) {
+        if (v >= init && v <= end) {
+          if (uniqueValues) nl.insertSortedUnique(v) ;
+          else nl.insertSorted(v) ;  
+        }
+      }
+    }
+
+    return nl ;
+  }
+  
+  NumericalList selectedSeriesByYValue( num yValue , [bool uniqueValues = false] ) {
+    return selectedSeriesByYValues( yValue , yValue , uniqueValues ) ;
+  }
+  
+  NumericalList selectedSeriesByYValues( num init, num end , [bool uniqueValues = false] ) {
+    NumericalList nl = new NumericalList() ;
+    
+    for (var serie in this.series) {
+      List<num> vals = serie.getYValues() ;
+      
+      for (num v in vals) {
+        if (v >= init && v <= end) {
+          if (uniqueValues) nl.insertSortedUnique(v) ;
+          else nl.insertSorted(v) ;
+        }
+      }
+    }
+
+    return nl ;
   }
   
 }
