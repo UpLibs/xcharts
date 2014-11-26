@@ -88,11 +88,11 @@ class XChartsDataSeries {
   
   Map<String, dynamic> get properties => _props ;
   
-  NumericalList asNumericalListX() {
+  NumericalList asNumericalListXValues() {
     return new NumericalList.fromList( getXValues() ) ;
   }
   
-  NumericalList asNumericalListY() {
+  NumericalList asNumericalListYValues() {
     return new NumericalList.fromList( getYValues() ) ;
   }
 
@@ -894,10 +894,12 @@ class XCharts {
   
   ///////////////////////////////////////////////////////////////////////////////////////
   
-  NumericalList selectSeriesXValues( [bool uniqueValues = false] ) {
+  NumericalList selectSeriesXValues( [bool onlyEnabledSeries = true, bool uniqueValues = false] ) {
     NumericalList nl = new NumericalList() ;
     
-    for (var serie in this.series) {
+    var series = onlyEnabledSeries ? this.seriesEnabled : this.series ;
+    
+    for (var serie in series) {
       List<num> vals = serie.getXValues() ;
       
       for (num v in vals) {
@@ -909,10 +911,12 @@ class XCharts {
     return nl ;
   }
   
-  NumericalList selectSeriesYValues( [bool uniqueValues = false] ) {
+  NumericalList selectSeriesYValues( [bool onlyEnabledSeries = true, bool uniqueValues = false] ) {
     NumericalList nl = new NumericalList() ;
     
-    for (var serie in this.series) {
+    var series = onlyEnabledSeries ? this.seriesEnabled : this.series ;
+    
+    for (var serie in series) {
       List<num> vals = serie.getYValues() ;
       
       for (num v in vals) {
@@ -924,14 +928,16 @@ class XCharts {
     return nl ;
   }
   
-  NumericalList selectedSeriesByXValue( num xValue , [bool uniqueValues = false] ) {
+  NumericalList selectedSeriesByXValue( num xValue , [bool onlyEnabledSeries = true, bool uniqueValues = false] ) {
     return selectedSeriesByXValues( xValue , xValue , uniqueValues ) ;
   }
   
-  NumericalList selectedSeriesByXValues( num init, num end , [bool uniqueValues = false] ) {
+  NumericalList selectedSeriesByXValues( num init, num end , [bool onlyEnabledSeries = true, bool uniqueValues = false] ) {
     NumericalList nl = new NumericalList() ;
     
-    for (var serie in this.series) {
+    var series = onlyEnabledSeries ? this.seriesEnabled : this.series ;
+    
+    for (var serie in series) {
       List<num> vals = serie.getXValues() ;
       
       for (num v in vals) {
@@ -945,14 +951,16 @@ class XCharts {
     return nl ;
   }
   
-  NumericalList selectedSeriesByYValue( num yValue , [bool uniqueValues = false] ) {
+  NumericalList selectedSeriesByYValue( num yValue , [bool onlyEnabledSeries = true, bool uniqueValues = false] ) {
     return selectedSeriesByYValues( yValue , yValue , uniqueValues ) ;
   }
   
-  NumericalList selectedSeriesByYValues( num init, num end , [bool uniqueValues = false] ) {
+  NumericalList selectedSeriesByYValues( num init, num end , [bool onlyEnabledSeries = true, bool uniqueValues = false] ) {
     NumericalList nl = new NumericalList() ;
     
-    for (var serie in this.series) {
+    var series = onlyEnabledSeries ? this.seriesEnabled : this.series ;
+    
+    for (var serie in series) {
       List<num> vals = serie.getYValues() ;
       
       for (num v in vals) {
