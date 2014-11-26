@@ -4,4 +4,5 @@ author: Graciliano Monteiro Passos <gracilianomp@gmail.com>
 description: Another Charts library.
 homepage: https://github.com/UpLibs/xcharts
 dependencies:
-  numerical_collection: any
+  numerical_collection: ">=0.1.2 <0.2.0"
+
