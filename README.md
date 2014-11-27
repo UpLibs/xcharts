@@ -62,6 +62,9 @@ TODO
 CHANGELOG
 ---------
 
+  * version: 0.1.7:
+  Minor fixes.
+  
   * version: 0.1.6:
   Selection of series data and many upgrades.
 
