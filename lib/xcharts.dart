@@ -667,6 +667,8 @@ class XCharts {
     
     allData.sort( (d1,d2) => d1.valueX.compareTo(d2.valueX)  ) ;
     
+    List<XChartsData> allDataMean = [] ;
+    
     for (int i = 0 ; i < allData.length ; i++) {
       XChartsData d1 = allData[i] ;
       
@@ -675,30 +677,27 @@ class XCharts {
       num valY = d1.valueY ;
       int valYSize = 1 ;
       
-      for (int j = i+1 ; j < allData.length ;) {
+      for (int j = i+1 ; j < allData.length ; j++) {
         XChartsData d2 = allData[j] ;
         
         if ( d2.valueX == valX ) {
           valY += d2.valueY ;
           valYSize++ ;
           
-          allData.removeAt(j) ;
+          i = j ;
         }
         else {
           break ;
         }
       }
-      
-      if (valYSize > 1) {
-        
-        allData[i] = d1.clone()
-                     ..valueY = valY/valYSize ;
 
-      }
+      var dMean = d1.clone()
+                 ..valueY = valY/valYSize ;
       
+      allDataMean.add(dMean) ;
     }
     
-    return allData ;
+    return allDataMean ;
   }
   
   static List<XChartsData> getAllSeriesDataMax(List<XChartsDataSeries> allSeries) {
@@ -710,30 +709,33 @@ class XCharts {
     
     allData.sort( (d1,d2) => d1.valueX.compareTo(d2.valueX)  ) ;
     
+    List<XChartsData> allDataMax = [] ;
+    
     for (int i = 0 ; i < allData.length ; i++) {
       XChartsData d1 = allData[i] ;
       
       num valX = d1.valueX ;
       num valY = d1.valueY ;
       
-      for (int j = i+1 ; j < allData.length ;) {
+      for (int j = i+1 ; j < allData.length ; j++) {
         XChartsData d2 = allData[j] ;
         
         if ( d2.valueX == valX ) {
           if (d2.valueY > valY) valY = d2.valueY ;
-          
-          allData.removeAt(j) ;
+          i = j ;
         }
         else {
           break ;
         }
       }
       
-      allData[i] = d1.clone()
-                   ..valueY = valY ;
+      var dMax = d1.clone()
+                 ..valueY = valY ;
+      
+      allDataMax.add(dMax) ;
     }
     
-    return allData ;
+    return allDataMax ;
   }
   
 
@@ -746,30 +748,33 @@ class XCharts {
     
     allData.sort( (d1,d2) => d1.valueX.compareTo(d2.valueX)  ) ;
     
+    List<XChartsData> allDataMin = [] ;
+    
     for (int i = 0 ; i < allData.length ; i++) {
       XChartsData d1 = allData[i] ;
       
       num valX = d1.valueX ;
       num valY = d1.valueY ;
       
-      for (int j = i+1 ; j < allData.length ;) {
+      for (int j = i+1 ; j < allData.length ; j++) {
         XChartsData d2 = allData[j] ;
         
         if ( d2.valueX == valX ) {
           if (d2.valueY < valY) valY = d2.valueY ;
-          
-          allData.removeAt(j) ;
+          i = j ;
         }
         else {
           break ;
         }
       }
       
-      allData[i] = d1.clone()
-                   ..valueY = valY ;
+      var dMin = d1.clone()
+                 ..valueY = valY ;
+            
+      allDataMin.add(dMin) ;
     }
     
-    return allData ;
+    return allDataMin ;
   }
 
   ////////////////////////////////////////////////////////////////////////////////
