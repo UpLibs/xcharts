@@ -268,6 +268,8 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
   bool valuesFill = true ;
   bool valuesShowLines = true ;
   
+  bool skipConsecutiveSameYValue = true ;
+  
   List _drawChartValues(XCharts chart, CanvasRenderingContext2D context) {
     int w = chart.width ;
     int h = chart.height ;
@@ -324,8 +326,19 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
       
       context.beginPath() ;
       
+      int lastDataIdx = data.length-1 ;
+      
       for (int j = 0 ; j < data.length ; j++) {
         var d = data[j] ;
+        
+        if (skipConsecutiveSameYValue && j > 0 && j < lastDataIdx) {
+          var dPrev = data[j-1] ;
+          var dNext = data[j+1] ;
+        
+          if ( d.y == dPrev.y && d.y == dNext.y ) {
+            continue ;
+          }
+        }
         
         var vX = d.valueY ;
         var vY = d.valueX ;
@@ -356,7 +369,7 @@ class XChartsTypeLine extends XChartsTypeWithXYAxis {
    
     return [ seriesPoints , seriesColors , axisXinit.x , axisXinit.y , chartElements ] ;
   }
-
+  
   void _drawChartValues_lines(List<List<Point>> seriesPoints, List<String> seriesColors, CanvasRenderingContext2D context, int xAxisY) {
     
     for (int i = 0 ; i < seriesPoints.length ; i++) {
