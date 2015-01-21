@@ -199,7 +199,7 @@ class XChartsTimelineDataHandler {
         for ( XChartsDataSeries s in this._timelineData.series ) {
           if ( s.name == serie.name ) {
         
-            s.data.insertAll(serie.data.length+1, serie.data);            
+            s.data.insertAll(serie.data.length, serie.data);            
             Set<XChartsData> set = s.data.toSet();
             s.data = set.toList();
             s.data.sort( (XChartsData d1, XChartsData d2) {
