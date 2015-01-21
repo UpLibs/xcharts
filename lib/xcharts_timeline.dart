@@ -198,7 +198,14 @@ class XChartsTimelineDataHandler {
         
         for ( XChartsDataSeries s in this._timelineData.series ) {
           if ( s.name == serie.name ) {
-            s.data = _joinData( s.data , serie.data ) ;
+        
+            s.data.insertAll(serie.data.length+1, serie.data);            
+            Set<XChartsData> set = s.data.toSet();
+            s.data = set.toList();
+            s.data.sort( (XChartsData d1, XChartsData d2) {
+                    return d1.valueX.compareTo(d2.valueX) ;
+                  } ) ;
+            
             join = true ;
             break ;
           }
@@ -218,33 +225,6 @@ class XChartsTimelineDataHandler {
     this._timelineData.endTime = Math.max( Math.min(this.endTime , timelineData.endTime) , this._timelineData.seriesEndTime ) ;
     
     _notifyDataChange() ;
-  }
-  
-  List<XChartsData> _joinData( List<XChartsData> data1 , List<XChartsData> data2 ) {
-    List<XChartsData> data3 = [] ;
-    
-    data3.addAll(data1) ;
-    data3.addAll(data2) ;
-    
-    data3.sort( (XChartsData d1, XChartsData d2) {
-      return d1.valueX.compareTo(d2.valueX) ;
-    } ) ;
-    
-    for (int i = 1 ; i < data3.length ;) {
-      int prevIdx = i-1 ;
-      
-      var prev = data3[prevIdx] ;
-      var d = data3[i] ;
-      
-      if ( prev.valueX == d.valueX ) {
-        data3.removeAt(prevIdx) ;
-      }
-      else {
-        i++ ;
-      }
-    }
-    
-    return data3 ;
   }
   
   bool _calling_listener_onTimelineDataChanged = false ;
