@@ -23,7 +23,9 @@ class XChartsDataSeries {
   }
   
   XChartsDataSeries clone(){
-    XChartsDataSeries clone = new XChartsDataSeries(this.name, this.data);
+    List<XChartsData> newData = new List();
+    this.data.forEach( (d) => newData.add(d.clone()) );
+    XChartsDataSeries clone = new XChartsDataSeries(this.name, newData);
     clone.color = this.color;
     clone.enabled = this.enabled;
     
@@ -87,6 +89,7 @@ class XChartsDataSeries {
   Map<String, dynamic> _props = {} ;
   
   Map<String, dynamic> get properties => _props ;
+  set properties(Map props) => _props = props ;
   
   NumericalList asNumericalListXValues() {
     return new NumericalList.fromList( getXValues() ) ;
@@ -251,6 +254,7 @@ class XCharts {
   
   List<XChartsDataSeries> get series => new List.from( this._allSeries ) ;
   List<XChartsDataSeries> get seriesEnabled => new List.from( this._allSeries.where( (s) => s.enabled ) ) ;
+  CanvasElement get canvas => _canvas ; 
   
   void clearSeries() => _allSeries.clear() ;
   
