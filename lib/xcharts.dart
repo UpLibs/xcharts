@@ -12,20 +12,21 @@ part './xcharts_control.dart' ;
 
 class XChartsDataSeries {
   
-  String name ;
+  String id ;
+  String label ;
   List<XChartsData> data ;
   String color ;
   
   bool enabled ;
   
-  XChartsDataSeries( this.name , this.data , [ this.color , this.enabled = true ]) {
+  XChartsDataSeries( this.id , this.label, this.data , [ this.color , this.enabled = true ]) {
     sortData() ;  
   }
   
   XChartsDataSeries clone(){
     List<XChartsData> newData = new List();
     this.data.forEach( (d) => newData.add(d.clone()) );
-    XChartsDataSeries clone = new XChartsDataSeries(this.name, newData);
+    XChartsDataSeries clone = new XChartsDataSeries(this.id, this.label, newData);
     clone.color = this.color;
     clone.enabled = this.enabled;
     
@@ -274,9 +275,9 @@ class XCharts {
   bool removeSerie(XChartsDataSeries serie) => _allSeries.remove(serie) ;
   bool containsSerie(XChartsDataSeries serie) => _allSeries.contains(serie) ;
   
-  XChartsDataSeries getSerie(String serieName) {
+  XChartsDataSeries getSerie(String serieId) {
     for ( var serie in _allSeries ) {
-      if (serie.name == serieName) return serie ;
+      if (serie.id == serieId) return serie ;
     }
     return null ;
   }

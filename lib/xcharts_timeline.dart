@@ -197,7 +197,7 @@ class XChartsTimelineDataHandler {
         bool join = false ;
         
         for ( XChartsDataSeries s in this._timelineData.series ) {
-          if ( s.name == serie.name ) {
+          if ( s.id == serie.id ) {
             s.data = _joinData( s.data , serie.data ) ;
             join = true ;
             break ;
@@ -379,7 +379,7 @@ class XChartsTimelineDataHandler {
       var d = _selectData( s.data, initTime, endTime ) ;
       
       if (d.isNotEmpty) {
-        var serie = new XChartsDataSeries( s.name, d,s.color,s.enabled ) ;
+        var serie = new XChartsDataSeries( s.id, s.label, d, s.color, s.enabled ) ;
         serie.properties.addAll( s.properties );
         
         series.add(serie) ;
