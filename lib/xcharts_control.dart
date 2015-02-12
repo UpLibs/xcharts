@@ -25,6 +25,8 @@ abstract class XChartsControlElement extends XChartsElement {
   XChartsControlElement(this._control, num x, num y, num width, num height) : super(x, y, width, height);
   
   void mouseMove(XCharts chart, num x, num y) {}
+  void mouseEnter(XCharts chart, num x, num y) {}
+  void mouseLeave(XCharts chart, num x, num y) {}
   void mouseClick(XCharts chart, num x, num y) {}
   void mousePress(XCharts chart, num x, num y) {}
   void mouseRelease(XCharts chart, num x, num y) {}
@@ -51,14 +53,126 @@ class XChartsControlTimeline extends XChartsControl {
   String colorMax = '#1E3D6B' ;
   String colorMin = '#00FFCD' ;
   String colorMean = '#000FFF' ;
-  
+  bool highlightLeftSelectionBorder = false ;
+  bool highlightRightSelectionBorder = false ;  
   double colorAlpha = 0.50 ;
+  
+  int x ;
+  int y ;
+  int w ;
+  int h ;
+  CanvasRenderingContext2D contextTimeline;
   
   XChartsControlTimeline(this._timelineDataHandler, int position, int height, [this.seriesDataType = SERIES_DATA_MAX]) : super(position, -1, height) ;
 
   XChartsTimelineDataHandler get timelineDataHandler => this._timelineDataHandler ;
   
   bool get isDataLoaded => this._timelineDataHandler.isDataLoaded ;
+  
+  void disableHightlightBorder() {
+    highlightLeftSelectionBorder = false ;
+    highlightRightSelectionBorder = false ;
+    drawHightlightBorder() ;
+  }
+  
+  void defineHightlightBorder(int mouseX) {
+    double minValX = null ;
+    double maxValX = null ;
+    
+    List<XChartsData> allData = XCharts.getAllSeriesData(timelineDataHandler.selectSeries()) ;
+    
+    if (allData == null || allData.isEmpty) return null ;
+    
+    for (var d in allData) {
+      if (maxValX == null || maxValX < d.valueX) maxValX = d.valueX.toDouble() ;
+      if (minValX == null || minValX > d.valueX) minValX = d.valueX.toDouble() ;
+    }
+    
+    if (minValX > timelineDataHandler.initTime) minValX = timelineDataHandler.initTime.toDouble() ;
+    if (maxValX < timelineDataHandler.endTime) maxValX = timelineDataHandler.endTime.toDouble() ;
+    
+    int timeRange = (maxValX - minValX).toInt() ;
+    
+    int selInit =  ( w * ( (this._timelineDataHandler.selectInitTime - minValX) / timeRange ) ).toInt() ;
+    int selEnd =  ( w * ( (this._timelineDataHandler.selectEndTime - minValX) / timeRange ) ).toInt() ;
+    
+    int middle =  (selEnd - selInit)~/2;
+
+    if (mouseX > (x + selInit + middle)) {
+      highlightLeftSelectionBorder = false ;
+      highlightRightSelectionBorder = true ;
+    }
+    else {
+      highlightLeftSelectionBorder = true ;
+      highlightRightSelectionBorder = false ;
+    }
+    
+    drawHightlightBorder() ;
+  }
+  
+  void drawHightlightBorder() {
+    
+    String color ;
+
+    if ( seriesDataType == SERIES_DATA_MAX ) {
+      color = colorMax ;  
+    }
+    else if ( seriesDataType == SERIES_DATA_MIN) {
+      color = colorMin ;  
+    }
+    else if ( seriesDataType == SERIES_DATA_MEAN ) {
+      color = colorMean ;  
+    }
+    else if ( seriesDataType == SERIES_DATA_MIN_MAX_MEAN ) {
+      color = colorMean ;
+    }
+    
+
+    double minValX = null ;
+    double maxValX = null ;
+    
+    List<XChartsData> allData = XCharts.getAllSeriesData(timelineDataHandler.selectSeries()) ;
+    
+    if (allData == null || allData.isEmpty) return null ;
+    
+    for (var d in allData) {
+      if (maxValX == null || maxValX < d.valueX) maxValX = d.valueX.toDouble() ;
+      if (minValX == null || minValX > d.valueX) minValX = d.valueX.toDouble() ;
+    }
+    
+    if (minValX > timelineDataHandler.initTime) minValX = timelineDataHandler.initTime.toDouble() ;
+    if (maxValX < timelineDataHandler.endTime) maxValX = timelineDataHandler.endTime.toDouble() ;
+    
+    int timeRange = (maxValX - minValX).toInt() ;
+    
+    int selInit =  ( w * ( (this._timelineDataHandler.selectInitTime - minValX) / timeRange ) ).toInt() ;
+    int selEnd =  ( w * ( (this._timelineDataHandler.selectEndTime - minValX) / timeRange ) ).toInt() ;
+    
+    int middle =  (selEnd - selInit)~/2;
+
+    contextTimeline.fillStyle = color ;
+    contextTimeline.fillRect(x+selInit, y, 2, h) ;
+    contextTimeline.fillRect(x+selInit+(selEnd-selInit)-2, y, 2, h);
+    
+    if ( highlightLeftSelectionBorder ) {
+      contextTimeline.fillStyle = 'rgba(0,0,0, 0.10)' ;
+    }
+    else {
+      contextTimeline.fillStyle = 'rgba(255,255,255, 0.60)' ;
+    }
+    
+    contextTimeline.fillRect(x+selInit, y, 2, h) ;
+    
+    if ( highlightRightSelectionBorder ) {
+      contextTimeline.fillStyle = 'rgba(0,0,0, 0.10)' ;
+    }
+    else {
+      contextTimeline.fillStyle = 'rgba(255,255,255, 0.60)' ;
+    }
+    
+    contextTimeline.fillRect(x+selInit+(selEnd-selInit)-2, y, 2, h);
+    
+  }
   
   List<XChartsDataSeries> getDataSeries(XCharts xcharts) {
     if (!isDataLoaded) return [] ;
@@ -72,10 +186,11 @@ class XChartsControlTimeline extends XChartsControl {
   @override
   List<XChartsElement> drawControl(XCharts xcharts, CanvasRenderingContext2D context, int chartWidth, int chartHeight) {
     
-    int x = 0 ;
-    int y = this.position == POSITION_NORTH ? 0 : chartHeight-height ;
-    int w = chartWidth ;
-    int h = height ;
+     x = 0 ;
+     y = this.position == POSITION_NORTH ? 0 : chartHeight-height ;
+     w = chartWidth ;
+     h = height ;
+     contextTimeline = context;
     
     double xAxisX = x+2.0 ;
     double xAxisY = y+h + 2.0 ;
@@ -137,6 +252,8 @@ class XChartsControlTimeline extends XChartsControl {
     
     context.fillStyle = 'rgba(0,0,0 , 0.20)' ;
     context.fillRect(x+selInit,y , selEnd-selInit,h) ;
+    
+    drawHightlightBorder() ;
     
     if ( _controlElement == null || !_controlElement.sameDimension(x, y, w, h) ) {
       _controlElement = new XChartsControlElementTimeline(this, x, y, w, h) ;  
@@ -213,10 +330,22 @@ class XChartsControlElementTimeline extends XChartsControlElement {
   XChartsControlTimeline get control => this._control as XChartsControlTimeline ;
 
   @override
+  void mouseEnter(XCharts chart, num x, num y) {
+    
+  }
+
+  @override
+  void mouseLeave(XCharts chart, num x, num y) {
+    control.disableHightlightBorder(); 
+  }
+  
+  @override
   void mouseMove(XCharts chart, num x, num y) {
     print("move> $x ; $y > $_pressed") ;
-
+    
     if (_pressed && chart._mousePressed) _setSelection(chart, x, y) ;
+    
+    control.defineHightlightBorder(x) ;
   }
   
   void _setSelection(XCharts chart, num x, num y) {

@@ -425,6 +425,8 @@ class XCharts {
   int get height => _height ;
   
   StreamSubscription<MouseEvent> _onMouseMoveSubscription ;
+  StreamSubscription<MouseEvent> _onMouseEnterSubscription ;
+  StreamSubscription<MouseEvent> _onMouseLeaveSubscription ;
   StreamSubscription<MouseEvent> _onMouseClickSubscription ;
   StreamSubscription<MouseEvent> _onMousePressSubscription ;
   StreamSubscription<MouseEvent> _onMouseReleaseSubscription ;
@@ -447,6 +449,8 @@ class XCharts {
     }
     
     if ( _onMouseMoveSubscription != null ) _onMouseMoveSubscription.cancel() ;
+    if ( _onMouseEnterSubscription != null ) _onMouseEnterSubscription.cancel() ;
+    if ( _onMouseLeaveSubscription != null ) _onMouseLeaveSubscription.cancel() ;
     if ( _onMouseClickSubscription != null ) _onMouseClickSubscription.cancel() ;
     if ( _onMousePressSubscription != null ) _onMousePressSubscription.cancel() ;
     if ( _onMouseReleaseSubscription != null ) _onMouseReleaseSubscription.cancel() ;
@@ -454,6 +458,8 @@ class XCharts {
     if ( _onWindowResizeSubscription != null ) _onWindowResizeSubscription.cancel() ;
     
     _onMouseMoveSubscription = _canvas.onMouseMove.listen( _processMouseMove ) ;
+    _onMouseEnterSubscription = _canvas.onMouseEnter.listen( _processMouseEnter ) ;
+    _onMouseLeaveSubscription = _canvas.onMouseLeave.listen( _processMouseLeave ) ;
     _onMouseClickSubscription = _canvas.onClick.listen( _processMouseClick ) ;
     _onMousePressSubscription = _canvas.onMouseDown.listen( _processMousePress ) ;
     _onMouseReleaseSubscription = _canvas.onMouseUp.listen( _processMouseRelease ) ;
@@ -481,6 +487,26 @@ class XCharts {
       }
     }
     
+    _checkNeedRepaint() ;
+  }
+  
+  void _processMouseEnter(MouseEvent e) {
+    if (_chartElements == null) return ;
+    
+    num x = e.offset.x ;
+    num y = e.offset.y ;
+    
+    _processMouseEnterControls(e, x, y) ;
+    _checkNeedRepaint() ;
+  }
+  
+  void _processMouseLeave(MouseEvent e) {
+    if (_chartElements == null) return ;
+    
+    num x = e.offset.x ;
+    num y = e.offset.y ;
+    
+    _processMouseLeaveControls(e, x, y) ;
     _checkNeedRepaint() ;
   }
   
@@ -517,6 +543,41 @@ class XCharts {
     for (XChartsElement e in _chartElements) {
       if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
         e.mouseMove(this, x - e._x , y - e._y ) ;
+      }
+    }
+    
+    for (XChartsElement e in _chartElements) {
+      if ( e is XChartsControlElement ) {
+        bool entered = _controlsEntererd[e] ;
+        if (entered == null) entered = false ;
+        
+        if ( e.containsPoint(x, y) ) {
+          if (!entered) e.mouseEnter(this, x - e._x , y - e._y ) ;
+        }
+        else {
+          if (entered) e.mouseLeave(this, x - e._x , y - e._y ) ;
+        }
+      }
+      
+    }
+  }
+  
+  Map<XChartsControlElement,bool> _controlsEntererd = {} ;
+  
+  void _processMouseEnterControls(MouseEvent e, num x, num y) {
+    for (XChartsElement e in _chartElements) {
+      if ( e is XChartsControlElement && e.containsPoint(x, y) ) {
+        e.mouseEnter(this, x - e._x , y - e._y ) ;
+        _controlsEntererd[e] = true ;
+      }
+    }
+  }
+  
+  void _processMouseLeaveControls(MouseEvent e, num x, num y) {
+    for (XChartsElement e in _chartElements) {
+      if ( e is XChartsControlElement ) {
+        e.mouseLeave(this, x - e._x , y - e._y ) ;
+        _controlsEntererd[e] = false ;
       }
     }
   }
