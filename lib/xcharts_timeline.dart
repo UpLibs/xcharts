@@ -307,8 +307,8 @@ class XChartsTimelineDataHandler {
     
     if ( this._selectInitTime == selInit && this._selectEndTime == selEnd ) return false ;
     
-    this._selectInitTime = selInit ;
-    this._selectEndTime = selEnd ;
+      this._selectInitTime = selInit ;      
+      this._selectEndTime = selEnd ;
         
     _autoUpdateData() ;
     
@@ -365,6 +365,27 @@ class XChartsTimelineDataHandler {
   
   List<XChartsDataSeries> selectSeries() {
     return selectSeriesByTime( this.selectInitTime , this.selectEndTime ) ;
+  }
+  
+  List<int> getValidTimeRangeValues(int selInit, int selEnd){
+    
+    List<int> values = new List(2);
+    
+    if (selInit < this.initTime) {
+      values[0] = initTime ;
+    }
+    else {
+      values[0] = selInit ;
+    }
+    
+    if (selEnd > this.endTime) {
+      values[1] = endTime ;
+    }
+    else {
+      values[1] = selEnd ;
+    }
+    
+    return values;
   }
   
   List<XChartsDataSeries> selectSeriesByTime(int initTime, int endTime) {
