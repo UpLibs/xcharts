@@ -124,7 +124,7 @@ class XChartsTimelineDataHandler {
       int endDiff = end - this._timelineData.endTime ;
       
       if (endDiff > 0) {
-        _loadPeriod(end-1 , end+endDiff) ;
+        _loadPeriod((end-endDiff)-1 , end) ;
       }
       
     }
@@ -216,6 +216,14 @@ class XChartsTimelineDataHandler {
     
     this._timelineData.initTime = Math.min( Math.max(this.initTime, timelineData.initTime) , this._timelineData.seriesInitTime ) ;
     this._timelineData.endTime = Math.max( Math.min(this.endTime , timelineData.endTime) , this._timelineData.seriesEndTime ) ;
+    
+    if ( this._selectInitTime < this._timelineData.initTime ) {
+      this._selectInitTime = this._timelineData.initTime ;
+    }
+    
+    if ( this._selectEndTime > this._timelineData.endTime ) {
+      this._selectEndTime = this._timelineData.endTime ;
+    }
     
     _notifyDataChange() ;
   }
