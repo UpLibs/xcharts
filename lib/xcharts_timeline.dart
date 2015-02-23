@@ -367,7 +367,7 @@ class XChartsTimelineDataHandler {
     return selectSeriesByTime( this.selectInitTime , this.selectEndTime ) ;
   }
   
-  List<int> getValidTimeRangeValues(int selInit, int selEnd){
+  List<int> getValidTimeRangeValues(int selInit, int selEnd) {
     
     List<int> values = new List(2);
     
