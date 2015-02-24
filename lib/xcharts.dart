@@ -162,7 +162,6 @@ class XChartsData {
 }
 
 class XCharts {
-  
 
   static String color2rgba(String color, double alpha) {
     color = color.trim().toLowerCase() ;
@@ -216,18 +215,19 @@ class XCharts {
 
   List<String> _defaultColors = [
   "#376085" ,
-  "#68d4e6" ,
+  "#2C7248" ,
   "#ffbc41" ,
+  "#68d4e6" ,
   "#d54052" ,
   "#009900" ,
-  "#999966" , "#FFCC33", "#FF3366", "#0099FF", "#1C6B49",
-  "#333300" , "#1C6F75", "#333366", "#333399", "#75361C",   
-  "#1C756C" , "#6666CC", "#9999FF", "#481C75", "#272744",
-  "#0099CC" , "#FF3300", "#808080", "#009933",
-  "rgb(119, 170, 84)",
+  "#999966" , "#0099FF", "#FF3366", "#FFCC33", "#1C6B49",
+  "#333300" , "#1C6F75", "#333366", "#691D17", "#75361C",   
+  "#1C756C" , "#6666CC", "#1C7670", "#272744", "#0099CC",
+  "#481C75" , "#FF3300", "#808080", "#009933",
   "rgb(112, 113, 200)",
   "rgb(197, 143, 126)",
-  "rgb(181, 185, 198)"
+  "rgb(181, 185, 198)",
+  "rgb(119, 170, 84)"
   ];
 
   List<String> get defaultColors => new List.from( _defaultColors ) ;
