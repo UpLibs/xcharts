@@ -378,16 +378,16 @@ class XChartsTimelineDataHandler {
   List<int> getValidTimeRangeValues(int selInit, int selEnd) {
     
     List<int> values = new List(2);
-    
-    if (selInit < this.initTime) {
-      values[0] = initTime ;
+
+    if (selInit < this._timelineData.initTime) {
+      values[0] = _timelineData.initTime ;
     }
     else {
       values[0] = selInit ;
     }
     
-    if (selEnd > this.endTime) {
-      values[1] = endTime ;
+    if (selEnd > this._timelineData.endTime) {
+      values[1] = _timelineData.endTime ;
     }
     else {
       values[1] = selEnd ;
