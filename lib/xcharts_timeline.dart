@@ -381,27 +381,27 @@ class XChartsTimelineDataHandler {
     return selectSeriesByTime( this.selectInitTime , this.selectEndTime ) ;
   }
   
-  List<XChartsDataSeries> selectSeriesCompacted(num interval) {
-    return _compactSeriesDates( selectSeries() , interval);
+  List<XChartsDataSeries> selectSeriesCompacted(num interval, bool sumValues) {
+    return _compactSeriesDates( selectSeries() , interval, sumValues);
   }
   
-  List<XChartsDataSeries> selectSeriesByTimeCompacted(int initTime, int endTime ,num interval) {
-    return _compactSeriesDates( selectSeriesByTime( initTime, endTime ) , interval);
+  List<XChartsDataSeries> selectSeriesByTimeCompacted(int initTime, int endTime ,num interval, bool sumValues) {
+    return _compactSeriesDates( selectSeriesByTime( initTime, endTime ) , interval, sumValues);
   }
   
-  List<XChartsDataSeries> _compactSeriesDates(List<XChartsDataSeries> series, int interval, [bool clone = true]) {
+  List<XChartsDataSeries> _compactSeriesDates(List<XChartsDataSeries> series, int interval, bool sumValues, [bool clone = true]) {
     List<XChartsDataSeries> seriesCompacted = [] ;
     
     for (var serie in series) {
       var serie2 = clone ? serie.cloneOnlySerie() : serie ;
-      serie2.data = _compactDatas(serie2.data , interval, clone);
+      serie2.data = _compactDatas(serie2.data , interval, sumValues, clone);
       seriesCompacted.add(serie2) ;
     }
     
     return seriesCompacted ;
   }
   
-  List<XChartsData> _compactDatas(List<XChartsData> datas, int interval, [bool clone = true]) {
+  List<XChartsData> _compactDatas(List<XChartsData> datas, int interval, bool sumValues, [bool clone = true]) {
      List<XChartsData> datasCompacted = [] ;
 
      List<XChartsData> buffer = [] ;
@@ -414,7 +414,7 @@ class XChartsTimelineDataHandler {
          num timeRange = data.x - buffer.first.x ;
          
          if (timeRange > interval) {
-           datasCompacted.add( _calcDataMean(buffer, clone) ) ;
+           datasCompacted.add( _calcDataMeanOrSum(buffer, sumValues, clone) ) ;
            buffer.clear();
          }
          
@@ -425,7 +425,7 @@ class XChartsTimelineDataHandler {
      return datasCompacted ;
   }
   
-  XChartsData _calcDataMean(List<XChartsData> datas, [bool clone = true]) {
+  XChartsData _calcDataMeanOrSum(List<XChartsData> datas, bool sumValues, [bool clone = true]) {
     var centerData = datas[ datas.length ~/ 2 ] ;
     
     if (clone) centerData = centerData.clone() ;
@@ -436,7 +436,7 @@ class XChartsTimelineDataHandler {
       totalY += data.valueY ;
     }
     
-    centerData.valueY = totalY ~/ datas.length ;
+    centerData.valueY = sumValues ? totalY : totalY ~/ datas.length ;
     
     return centerData ;
   }

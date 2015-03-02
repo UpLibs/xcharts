@@ -616,9 +616,11 @@ class XChartsTypeBar extends XChartsTypeWithXYAxis {
         context.rect(p.x - valWidthHalf, p.y-hAdjust , _valuesBarWidth, h) ;
         context.fill() ;
         
-        context.beginPath() ;
-        context.rect(p.x - valWidthHalf, p.y-hAdjust , _valuesBarWidth, h) ;
-        context.stroke();
+        if (valuesBarBorder > 0) {
+          context.beginPath() ;
+          context.rect(p.x - valWidthHalf, p.y-hAdjust , _valuesBarWidth, h) ;
+          context.stroke();
+        }
         
       }
     
