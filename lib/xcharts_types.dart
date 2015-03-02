@@ -466,6 +466,8 @@ class XChartsTypeBar extends XChartsTypeWithXYAxis {
     
     super.drawChart(chart, context) ;
     
+    if (ret == null) return [] ;
+    
     List<List<Point>> seriesPoints = ret[0] ;
     List<String> seriesColors = ret[1] ;
     num xAxisX = ret[2] ;
@@ -498,6 +500,8 @@ class XChartsTypeBar extends XChartsTypeWithXYAxis {
     Point axisYend = axisPoints[3] ;
     
     List<num> yVals = chart.getYValues() ;
+    
+    if (yVals.isEmpty) return null ;
     
     num yValsMin = yVals.first ;
     num yValsMax = yVals.last ;
@@ -550,14 +554,14 @@ class XChartsTypeBar extends XChartsTypeWithXYAxis {
       for (int j = 0 ; j < data.length ; j++) {
         var d = data[j] ;
         
-        var vX = d.valueY ;
-        var vY = d.valueX ;
+        var vX = d.valueX ;
+        var vY = d.valueY ;
         
-        double valXRatio = (vX-yValsMin) / yValsRange ;
-        double valYRatio = (vY-xValMin) / xValRange ;
+        double valXRatio = (vX-xValMin) / xValRange ;
+        double valYRatio = (vY-yValsMin) / yValsRange ;
         
-        num valX = axisXinit.x + axixXwidth * valYRatio ;
-        num valY = axisYend.y + axixYheight * (1-valXRatio) ;
+        num valX = axisXinit.x + axixXwidth * valXRatio ;
+        num valY = axisYend.y + axixYheight * (1-valYRatio) ;
         
         points.add( new Point(valX,valY) ) ;
         
