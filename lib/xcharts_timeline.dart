@@ -257,7 +257,13 @@ class XChartsTimelineDataHandler {
   
   bool _calling_listener_onTimelineDataChanged = false ;
   
+  int _dataChangeVersion = 0 ;
+  
+  int get dataChangeVersion => _dataChangeVersion ;
+  
   void _notifyDataChange() {
+    _dataChangeVersion++ ;
+    
     if (_calling_listener_onTimelineDataChanged) return ;
     
     try {
@@ -373,6 +379,66 @@ class XChartsTimelineDataHandler {
   
   List<XChartsDataSeries> selectSeries() {
     return selectSeriesByTime( this.selectInitTime , this.selectEndTime ) ;
+  }
+  
+  List<XChartsDataSeries> selectSeriesCompacted(num interval) {
+    return _compactSeriesDates( selectSeries() , interval);
+  }
+  
+  List<XChartsDataSeries> selectSeriesByTimeCompacted(int initTime, int endTime ,num interval) {
+    return _compactSeriesDates( selectSeriesByTime( initTime, endTime ) , interval);
+  }
+  
+  List<XChartsDataSeries> _compactSeriesDates(List<XChartsDataSeries> series, int interval, [bool clone = true]) {
+    List<XChartsDataSeries> seriesCompacted = [] ;
+    
+    for (var serie in series) {
+      var serie2 = clone ? serie.cloneOnlySerie() : serie ;
+      serie2.data = _compactDatas(serie2.data , interval, clone);
+      seriesCompacted.add(serie2) ;
+    }
+    
+    return seriesCompacted ;
+  }
+  
+  List<XChartsData> _compactDatas(List<XChartsData> datas, int interval, [bool clone = true]) {
+     List<XChartsData> datasCompacted = [] ;
+
+     List<XChartsData> buffer = [] ;
+     
+     for (var data in datas) {
+       if ( buffer.isEmpty ) {
+         buffer.add(data) ;
+       }
+       else {
+         num timeRange = data.x - buffer.first.x ;
+         
+         if (timeRange > interval) {
+           datasCompacted.add( _calcDataMean(buffer, clone) ) ;
+           buffer.clear();
+         }
+         
+         buffer.add(data) ;
+       }
+     }
+       
+     return datasCompacted ;
+  }
+  
+  XChartsData _calcDataMean(List<XChartsData> datas, [bool clone = true]) {
+    var centerData = datas[ datas.length ~/ 2 ] ;
+    
+    if (clone) centerData = centerData.clone() ;
+    
+    num totalY = 0 ;
+    
+    for (var data in datas) {
+      totalY += data.valueY ;
+    }
+    
+    centerData.valueY = totalY ~/ datas.length ;
+    
+    return centerData ;
   }
   
   List<int> getValidTimeRangeValues(int selInit, int selEnd) {

@@ -29,6 +29,16 @@ class XChartsDataSeries {
     XChartsDataSeries clone = new XChartsDataSeries(this.id, this.label, newData);
     clone.color = this.color;
     clone.enabled = this.enabled;
+    clone._props.addAll( this._props ) ;
+    
+    return clone;
+  }
+  
+  XChartsDataSeries cloneOnlySerie(){
+    XChartsDataSeries clone = new XChartsDataSeries(this.id, this.label, new List.from(this.data));
+    clone.color = this.color;
+    clone.enabled = this.enabled;
+    clone._props.addAll( this._props ) ;
     
     return clone;
   }
@@ -251,6 +261,22 @@ class XCharts {
   }
   
   XChartsType get type => _type ;
+
+  /////////////////////////////////////////////////////////////////////////////////////
+  
+  String legendsFontFamily = 'Verdana' ;
+  int legendsFontSize = 20 ;
+  String legendsFontStyle = 'normal' ;
+  String legendsColor = '#000000' ; 
+  
+  String _legendTop ;
+  String _legendBottom ;
+  
+  String get legendTop => _legendTop ;
+  String get legendBottom => _legendBottom ;
+  
+  set legendTop(String s) => _legendTop = s ;
+  set legendBottom(String s) => _legendBottom = s ;
   
   /////////////////////////////////////////////////////////////////////////////////////
   
@@ -714,6 +740,22 @@ class XCharts {
     _chartElements = _type.drawChart(this, _context) ;
     
     _paintControls() ;
+    
+    _paintLegend();
+    
+  }
+
+  void _paintLegend() {
+    
+    if ( _legendTop != null && _legendTop.isNotEmpty ) {
+      _context.fillStyle = legendsColor ;
+      _context.font = '$legendsFontStyle ${legendsFontSize}px $legendsFontFamily' ;
+      
+      TextMetrics textMetrics = _context.measureText(_legendTop) ;
+      double labelWidth = textMetrics.width ;
+      
+      _context.fillText(_legendTop, width~/2 - (labelWidth~/2), legendsFontSize) ;
+    }
     
   }
   

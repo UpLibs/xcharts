@@ -183,8 +183,20 @@ class XChartsControlTimeline extends XChartsControl {
   
   XChartsControlElementTimeline _controlElement ;
   
+  int _prevDataChangeVersion = -1 ;
+  CanvasElement _controlCanvas ;
+  CanvasRenderingContext2D _controlCanvasContext ;
+  int _controlCanvasW = -1 ;
+  int _controlCanvasH = -1 ;
+
   @override
   List<XChartsElement> drawControl(XCharts xcharts, CanvasRenderingContext2D context, int chartWidth, int chartHeight) {
+    
+    int dataChangeVersion = timelineDataHandler.dataChangeVersion ;
+    
+    bool isSameDataVerion = dataChangeVersion == _prevDataChangeVersion ;
+    
+    _prevDataChangeVersion = dataChangeVersion ;
     
      x = 0 ;
      y = this.position == POSITION_NORTH ? 0 : chartHeight-height ;
@@ -230,20 +242,39 @@ class XChartsControlTimeline extends XChartsControl {
     String colorMin = XCharts.color2rgba(this.colorMin, colorAlpha) ;
     String colorMean = XCharts.color2rgba(this.colorMean, colorAlpha) ;
     
-    if ( seriesDataType == SERIES_DATA_MAX ) {
-      _drawControlImplem(xcharts, context, x, y, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMax(series) , colorMax) ;  
+    bool newCanvas = false ;
+    if ( _controlCanvas == null || _controlCanvasW != w || _controlCanvasH != h ) {
+      _controlCanvas = new CanvasElement() ;
+      _controlCanvas.width = w ;
+      _controlCanvas.height = h ;
+      
+      _controlCanvasContext = _controlCanvas.getContext('2d') ;
+      
+      _controlCanvasW = w ;
+      _controlCanvasH = h ;
+      newCanvas = true ;
     }
-    else if ( seriesDataType == SERIES_DATA_MIN) {
-      _drawControlImplem(xcharts, context, x, y, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMin(series) , colorMin) ;  
+    
+    if ( !isSameDataVerion || newCanvas ) {
+      _controlCanvasContext.clearRect(0, 0, w,h) ;
+      
+      if ( seriesDataType == SERIES_DATA_MAX ) {
+        _drawControlImplem(xcharts, _controlCanvasContext, 0, 0, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMax(series) , colorMax) ;  
+      }
+      else if ( seriesDataType == SERIES_DATA_MIN) {
+        _drawControlImplem(xcharts, _controlCanvasContext, 0, 0, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMin(series) , colorMin) ;  
+      }
+      else if ( seriesDataType == SERIES_DATA_MEAN ) {
+        _drawControlImplem(xcharts, _controlCanvasContext, 0, 0, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMean(series) , colorMean) ;  
+      }
+      else if ( seriesDataType == SERIES_DATA_MIN_MAX_MEAN ) {
+        _drawControlImplem(xcharts, _controlCanvasContext, 0, 0, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMax(series) , colorMax) ;
+        _drawControlImplem(xcharts, _controlCanvasContext, 0, 0, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMin(series) , colorMin) ;
+        _drawControlImplem(xcharts, _controlCanvasContext, 0, 0, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMean(series) , colorMean , true) ;
+      }
     }
-    else if ( seriesDataType == SERIES_DATA_MEAN ) {
-      _drawControlImplem(xcharts, context, x, y, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMean(series) , colorMean) ;  
-    }
-    else if ( seriesDataType == SERIES_DATA_MIN_MAX_MEAN ) {
-      _drawControlImplem(xcharts, context, x, y, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMax(series) , colorMax) ;
-      _drawControlImplem(xcharts, context, x, y, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMin(series) , colorMin) ;
-      _drawControlImplem(xcharts, context, x, y, w, h, minValX, maxValX, minValY, maxValY, XCharts.getAllSeriesDataMean(series) , colorMean , true) ;
-    }
+    
+    context.drawImage(_controlCanvas, x, y) ;
     
     int timeRange = (maxValX - minValX).toInt() ;
     
@@ -319,7 +350,8 @@ class XChartsControlElementTimeline extends XChartsControlElement {
   void mouseClick(XCharts chart, num x, num y) {
     print("click> $x ; $y") ;
     
-    _setSelection(chart, x, y) ;
+    _lastMovingSelectionFromLeftSide = null ;
+    _setSelection(chart, x, y, false) ;
     _loadData() ;  
   }
   
@@ -343,12 +375,14 @@ class XChartsControlElementTimeline extends XChartsControlElement {
   void mouseMove(XCharts chart, num x, num y) {
     print("move> $x ; $y > $_pressed") ;
     
-    if (_pressed && chart._mousePressed) _setSelection(chart, x, y) ;
+    if (_pressed && chart._mousePressed) _setSelection(chart, x, y, true) ;
     
     control.defineHightlightBorder(x) ;
   }
   
-  void _setSelection(XCharts chart, num x, num y) {
+  bool _lastMovingSelectionFromLeftSide = null ;
+  
+  void _setSelection(XCharts chart, num x, num y, bool moving) {
     double ratio = x / this._width ;
     
     if (ratio > 1) ratio = 1.0 ;
@@ -362,11 +396,24 @@ class XChartsControlElementTimeline extends XChartsControlElement {
     
     control.timelineDataHandler.setAutoUpdateData(false) ;
     
-    if ( diffInit < diffEnd ) {
-      this.control.timelineDataHandler.setSelectInitTimeByRatio(ratio) ;  
+    bool leftSelection = null ;
+    
+    if (moving && _lastMovingSelectionFromLeftSide != null) {
+      leftSelection = _lastMovingSelectionFromLeftSide ;
+    }
+    
+    if (leftSelection == null) {
+      leftSelection = diffInit < diffEnd ;
+    }
+    
+    if ( leftSelection ) {
+      this.control.timelineDataHandler.setSelectInitTimeByRatio(ratio) ;
+      if (moving) _lastMovingSelectionFromLeftSide = true ;
     }
     else {
       this.control.timelineDataHandler.setSelectEndTimeByRatio(ratio) ;
+      _lastMovingSelectionFromLeftSide = false ;
+      if (moving) _lastMovingSelectionFromLeftSide = false ;
     }
     
     chart.requestRepaint() ;
@@ -378,12 +425,14 @@ class XChartsControlElementTimeline extends XChartsControlElement {
   void mousePress(XCharts chart, num x, num y) {
     print("press> $x ; $y") ;
     _pressed = true ;
+    _lastMovingSelectionFromLeftSide = null ;
   }
   
   @override
   void mouseRelease(XCharts chart, num x, num y) {
     print("release> $x ; $y") ;
     _pressed = false ;
+    _lastMovingSelectionFromLeftSide = null ;
     
     _loadData() ;
   }
