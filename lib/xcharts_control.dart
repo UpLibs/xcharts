@@ -76,20 +76,9 @@ class XChartsControlTimeline extends XChartsControl {
   }
   
   void defineHightlightBorder(int mouseX) {
-    double minValX = null ;
-    double maxValX = null ;
-    
-    List<XChartsData> allData = XCharts.getAllSeriesData(timelineDataHandler.selectSeries()) ;
-    
-    if (allData == null || allData.isEmpty) return null ;
-    
-    for (var d in allData) {
-      if (maxValX == null || maxValX < d.valueX) maxValX = d.valueX.toDouble() ;
-      if (minValX == null || minValX > d.valueX) minValX = d.valueX.toDouble() ;
-    }
-    
-    if (minValX > timelineDataHandler.initTime) minValX = timelineDataHandler.initTime.toDouble() ;
-    if (maxValX < timelineDataHandler.endTime) maxValX = timelineDataHandler.endTime.toDouble() ;
+    List<double> ret = _calcSeriesMinMaxValueX() ;
+    double minValX = ret[0] ;
+    double maxValX = ret[1] ;
     
     int timeRange = (maxValX - minValX).toInt() ;
     
@@ -109,6 +98,52 @@ class XChartsControlTimeline extends XChartsControl {
     
     drawHightlightBorder() ;
   }
+
+  int _calcSeriesMinMaxValueX_dataChangeVersion = -1 ;
+  double _calcSeriesMinMaxValueX_minValX ;
+  double _calcSeriesMinMaxValueX_minValY ;
+  double _calcSeriesMinMaxValueX_maxValX ;
+  double _calcSeriesMinMaxValueX_maxValY ;
+  
+  List<double> _calcSeriesMinMaxValueX() {
+    double minValX = null ;
+    double minValY = null ;
+    double maxValX = null ;
+    double maxValY = null ;
+    
+    if ( _calcSeriesMinMaxValueX_dataChangeVersion == this.timelineDataHandler.dataChangeVersion ) {
+      minValX = _calcSeriesMinMaxValueX_minValX ;
+      minValY = _calcSeriesMinMaxValueX_minValY ;
+      maxValX = _calcSeriesMinMaxValueX_maxValX ;
+      maxValY = _calcSeriesMinMaxValueX_maxValY ;
+    }
+    else {
+      List<XChartsData> allData = XCharts.getAllSeriesData(timelineDataHandler.selectSeries()) ;
+      
+      if (allData == null || allData.isEmpty) return null ;
+      
+      for (var d in allData) {
+        if (maxValX == null || maxValX < d.valueX) maxValX = d.valueX.toDouble() ;
+        if (minValX == null || minValX > d.valueX) minValX = d.valueX.toDouble() ;
+        
+        if (maxValY == null || maxValY < d.valueY) maxValY = d.valueY.toDouble() ;
+        if (minValY == null || minValY > d.valueY) minValY = d.valueY.toDouble() ;
+      }
+      
+      if (minValX > timelineDataHandler.initTime) minValX = timelineDataHandler.initTime.toDouble() ;
+      if (maxValX < timelineDataHandler.endTime) maxValX = timelineDataHandler.endTime.toDouble() ;
+      
+      _calcSeriesMinMaxValueX_minValX = minValX ;
+      _calcSeriesMinMaxValueX_minValY = minValY ;
+      _calcSeriesMinMaxValueX_maxValX = maxValX ;
+      _calcSeriesMinMaxValueX_maxValY = maxValY ;
+      
+      _calcSeriesMinMaxValueX_dataChangeVersion = this.timelineDataHandler.dataChangeVersion ;
+    }
+    
+    return [minValX , maxValX, minValY , maxValY] ;
+  }
+  
   
   void drawHightlightBorder() {
     
@@ -126,22 +161,10 @@ class XChartsControlTimeline extends XChartsControl {
     else if ( seriesDataType == SERIES_DATA_MIN_MAX_MEAN ) {
       color = colorMean ;
     }
-    
 
-    double minValX = null ;
-    double maxValX = null ;
-    
-    List<XChartsData> allData = XCharts.getAllSeriesData(timelineDataHandler.selectSeries()) ;
-    
-    if (allData == null || allData.isEmpty) return null ;
-    
-    for (var d in allData) {
-      if (maxValX == null || maxValX < d.valueX) maxValX = d.valueX.toDouble() ;
-      if (minValX == null || minValX > d.valueX) minValX = d.valueX.toDouble() ;
-    }
-    
-    if (minValX > timelineDataHandler.initTime) minValX = timelineDataHandler.initTime.toDouble() ;
-    if (maxValX < timelineDataHandler.endTime) maxValX = timelineDataHandler.endTime.toDouble() ;
+    List<double> ret = _calcSeriesMinMaxValueX() ;
+    double minValX = ret[0] ;
+    double maxValX = ret[1] ;
     
     int timeRange = (maxValX - minValX).toInt() ;
     
@@ -213,28 +236,15 @@ class XChartsControlTimeline extends XChartsControl {
     context.fillRect(x,y , w,h) ;
     
     /////////////////////
+    
+    List<double> ret = _calcSeriesMinMaxValueX() ;
 
-    double minValX = null ;
-    double maxValX = null ;
-    double minValY = null ;
-    double maxValY = null ;
+    double minValX = ret[0] ;
+    double maxValX = ret[1] ;
+    double minValY = ret[2] ;
+    double maxValY = ret[3] ;
     
     List<XChartsDataSeries> series = getDataSeries(xcharts) ;
-    
-    List<XChartsData> allData = XCharts.getAllSeriesData(series) ;
-    
-    if (allData == null || allData.isEmpty) return null ;
-    
-    for (var d in allData) {
-      if (maxValX == null || maxValX < d.valueX) maxValX = d.valueX.toDouble() ;
-      if (minValX == null || minValX > d.valueX) minValX = d.valueX.toDouble() ;
-            
-      if (maxValY == null || maxValY < d.valueY) maxValY = d.valueY.toDouble() ;
-      if (minValY == null || minValY > d.valueY) minValY = d.valueY.toDouble() ;
-    }
-    
-    if (minValX > timelineDataHandler.initTime) minValX = timelineDataHandler.initTime.toDouble() ;
-    if (maxValX < timelineDataHandler.endTime) maxValX = timelineDataHandler.endTime.toDouble() ;
     
     ///////////////////////
     
@@ -373,8 +383,6 @@ class XChartsControlElementTimeline extends XChartsControlElement {
   
   @override
   void mouseMove(XCharts chart, num x, num y) {
-    print("move> $x ; $y > $_pressed") ;
-    
     if (_pressed && chart._mousePressed) _setSelection(chart, x, y, true) ;
     
     control.defineHightlightBorder(x) ;

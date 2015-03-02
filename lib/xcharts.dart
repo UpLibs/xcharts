@@ -23,10 +23,13 @@ class XChartsDataSeries {
     sortData() ;  
   }
   
+  XChartsDataSeries._dataAlreadySorted( this.id , this.label, this.data , [ this.color , this.enabled = true ]) {
+  }
+  
   XChartsDataSeries clone(){
     List<XChartsData> newData = new List();
     this.data.forEach( (d) => newData.add(d.clone()) );
-    XChartsDataSeries clone = new XChartsDataSeries(this.id, this.label, newData);
+    XChartsDataSeries clone = new XChartsDataSeries._dataAlreadySorted(this.id, this.label, newData);
     clone.color = this.color;
     clone.enabled = this.enabled;
     clone._props.addAll( this._props ) ;
@@ -35,7 +38,7 @@ class XChartsDataSeries {
   }
   
   XChartsDataSeries cloneOnlySerie(){
-    XChartsDataSeries clone = new XChartsDataSeries(this.id, this.label, new List.from(this.data));
+    XChartsDataSeries clone = new XChartsDataSeries._dataAlreadySorted(this.id, this.label, new List.from(this.data));
     clone.color = this.color;
     clone.enabled = this.enabled;
     clone._props.addAll( this._props ) ;

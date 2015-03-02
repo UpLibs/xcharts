@@ -474,7 +474,7 @@ class XChartsTimelineDataHandler {
       var d = _selectData( s.data, initTime, endTime ) ;
       
       if (d.isNotEmpty) {
-        var serie = new XChartsDataSeries( s.id, s.label, d, s.color, s.enabled ) ;
+        var serie = new XChartsDataSeries._dataAlreadySorted( s.id, s.label, d, s.color, s.enabled ) ;
         serie.properties.addAll( s.properties );
         
         series.add(serie) ;
