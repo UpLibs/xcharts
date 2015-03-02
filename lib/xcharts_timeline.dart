@@ -319,7 +319,7 @@ class XChartsTimelineDataHandler {
   bool _setSelectedTime(int selInit, int selEnd) {
     if (selInit > selEnd) return false ;
     
-    if ( this._selectInitTime == selInit && this._selectEndTime == selEnd ) return false ;
+    if ( this._selectInitTime == selInit && this._selectEndTime == selEnd ) return true ;
     
       this._selectInitTime = selInit ;      
       this._selectEndTime = selEnd ;
