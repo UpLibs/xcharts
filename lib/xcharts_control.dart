@@ -77,6 +77,9 @@ class XChartsControlTimeline extends XChartsControl {
   
   void defineHightlightBorder(int mouseX) {
     List<double> ret = _calcSeriesMinMaxValueX() ;
+    
+    if (ret == null) return ;
+    
     double minValX = ret[0] ;
     double maxValX = ret[1] ;
     
@@ -163,6 +166,8 @@ class XChartsControlTimeline extends XChartsControl {
     }
 
     List<double> ret = _calcSeriesMinMaxValueX() ;
+    if (ret == null) return ;
+    
     double minValX = ret[0] ;
     double maxValX = ret[1] ;
     
@@ -238,7 +243,8 @@ class XChartsControlTimeline extends XChartsControl {
     /////////////////////
     
     List<double> ret = _calcSeriesMinMaxValueX() ;
-
+    if (ret == null) return null ;
+    
     double minValX = ret[0] ;
     double maxValX = ret[1] ;
     double minValY = ret[2] ;
