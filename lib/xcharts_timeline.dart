@@ -225,6 +225,12 @@ class XChartsTimelineDataHandler {
       this._selectEndTime = this._timelineData.endTime ;
     }
     
+    if ( this._selectInitTime > this._selectEndTime ) {
+      var tmp = this._selectEndTime ;
+      this._selectEndTime = this._selectInitTime ;
+      this._selectInitTime = tmp ;
+    }
+    
     _notifyDataChange() ;
   }
   
