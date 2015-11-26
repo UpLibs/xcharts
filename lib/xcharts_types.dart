@@ -172,7 +172,7 @@ abstract class XChartsTypeWithXYAxis extends XChartsType {
       
       TextMetrics textMetrics = context.measureText(label) ;
       
-      double labelWidth = textMetrics.width ;
+      double labelWidth = textMetrics.width.toDouble() ;
       
       double valRangeRatio = (val-valsInit) / valsRange ;
       
